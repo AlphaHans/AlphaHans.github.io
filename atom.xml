@@ -581,7 +581,7 @@
 </li>
 </ul>
 <h2 id="ReferenceQueue与引用"><a href="#ReferenceQueue与引用" class="headerlink" title="ReferenceQueue与引用"></a>ReferenceQueue与引用</h2><p>详情见：</p>
-<p><a href="http://www.hanszone.tech/2017/03/05/【Java基础】浅析Java四大引用与ReferenceQueue/" target="_blank" rel="external">HansZone - 【Java基础】浅析Java四大引用与ReferenceQueue</a></p>
+<p><a href="http://www.hanszone.tech/2017/03/05/【Java基础】浅析Java四大引用与ReferenceQueue/">HansZone - 【Java基础】浅析Java四大引用与ReferenceQueue</a></p>
 <p>实际上<code>RefWatcher</code>的核心原理就是利用了该思想</p>
 <h2 id="RefWatcher核心方法"><a href="#RefWatcher核心方法" class="headerlink" title="RefWatcher核心方法"></a>RefWatcher核心方法</h2><ul>
 <li><p>watch：创建<code>WeakReference</code>对象，标记唯一的key，并且放入到队列中去</p>

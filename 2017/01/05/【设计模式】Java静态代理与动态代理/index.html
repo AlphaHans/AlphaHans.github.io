@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【设计模式】Java静态代理与动态代理 · Hans Zone</title><meta name="description" content="【设计模式】Java静态代理与动态代理 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【设计模式】Java静态代理与动态代理</h1><div class="tags"><a href="/tags/设计模式/" class="tag-title">#设计模式</a></div><div class="post-info">Jan 5, 2017</div><div class="post-content"><h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><p><a href="http://yeungeek.com/2016/05/19/Android%E5%85%AC%E5%85%B1%E6%8A%80%E6%9C%AF%E7%82%B9%E4%B9%8B%E5%9B%9B-Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" target="_blank" rel="external">Android沉思录 - Android公共技术点之四-Java动态代理</a></p>
+</li>
+<li><p><a href="http://p.codekk.com/blogs/detail/54cfab086c4761e5001b253d" target="_blank" rel="external">codeKK - 公共技术点之 Java 动态代理</a></p>
+</li>
+</ul>
+<a id="more"></a>
+<h2 id="为什么要用代理"><a href="#为什么要用代理" class="headerlink" title="为什么要用代理"></a>为什么要用代理</h2><p>代理分为：静态代理和动态代理</p>
+<p>用代理的优点：</p>
+<ul>
+<li><p>隐藏委托类的实现解耦</p>
+</li>
+<li><p>不改变委托类代码情况下做一些额外处理，比如添加初始判断及其他公共操作、数据库的权限判断等</p>
+</li>
+</ul>
+<h2 id="动态代理优点"><a href="#动态代理优点" class="headerlink" title="动态代理优点"></a>动态代理优点</h2><ul>
+<li><p>免除了静态代理中：修改接口则所有实现类以及其代理类都要修改的缺点。 在动态代理中，只需要在实现类中添加具体实现，而不需要修改代理类</p>
+</li>
+<li><p>动态代理能够对相关特殊方法进行统一处理，如：数据库编程中，对于增删查改函数都需要进行权限验证。如果使用动态代理，能够只在动态代理中的invoke函数进行集中式处理，避免逻辑重复和耦合度。</p>
+</li>
+</ul>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="第一步-说明代理的好处"><a href="#第一步-说明代理的好处" class="headerlink" title="第一步 说明代理的好处"></a>第一步 说明代理的好处</h3><p>接口类：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public interface TimeInterface &#123;//获取时间接口</div><div class="line">    String getTime();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>实现类：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class TimeImpl implements TimeInterface &#123;</div><div class="line">    @Override</div><div class="line">    public String getTime() &#123;</div><div class="line">        return String.valueOf(System.currentTimeMillis());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代理类（静态代理）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class StaticTimeProxy implements TimeInterface &#123;</div><div class="line">    private TimeInterface mDelegate;</div><div class="line"></div><div class="line">    public StaticTimeProxy() &#123;</div><div class="line">        mDelegate = new TimeImpl();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public String getTime() &#123;</div><div class="line">        return mDelegate.getTime();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static void main(String args[]) &#123;</div><div class="line">    TimeInterface timeInterface = new StaticTimeProxy();</div><div class="line">    String time = timeInterface.getTime();</div><div class="line">    System.out.println(time);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">1483603974906</div></pre></td></tr></table></figure>
+<p>那么如果现在我这样一个场景：</p>
+<ul>
+<li><p>1.当是时间等于2017年时，才返回正确的毫秒值</p>
+</li>
+<li><p>2.如果不是2017年，则返回空时间</p>
+</li>
+</ul>
+<p>那么我可能需要这样修改：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class StaticTimeProxy implements TimeInterface &#123;</div><div class="line">    ...</div><div class="line">    </div><div class="line"></div><div class="line">    @Override</div><div class="line">    public String getTime() &#123;</div><div class="line">        String time = mDelegate.getTime();</div><div class="line">        Date date = new Date(Long.valueOf(time));</div><div class="line">        Calendar calendar = Calendar.getInstance(Locale.CHINA);</div><div class="line">        calendar.setTime(date);</div><div class="line">        //只有等于2017年才允许获取时间</div><div class="line">        if (calendar.get(Calendar.YEAR) == 2017) &#123;</div><div class="line">            return time;</div><div class="line">        &#125;</div><div class="line">        //否则返回空</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>好处:</p>
+<ul>
+<li><p>1.我只需要修改改代理类的代码</p>
+</li>
+<li><p>2.不需要出修改相对底层的<code>TimeImpl</code>类</p>
+</li>
+<li><p>3.保证了其他使用<code>TimeImpl</code>地方不会受到代理类的修改而导致错误</p>
+</li>
+</ul>
+<h3 id="第二步-说明动态代理的好处"><a href="#第二步-说明动态代理的好处" class="headerlink" title="第二步 说明动态代理的好处"></a>第二步 说明动态代理的好处</h3><p>假设我现在有一个这样的需求，<code>TimeInterface</code>我需要一个增加一个<code>getYear</code>直接获取年份的接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public interface TimeInterface &#123;</div><div class="line">    String getTime();</div><div class="line">    </div><div class="line">    int getYear();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>那么此时，所以实现了TimeInterface的实现类和代理类都要重写这个方法，如上文的<code>TimeImpl</code>和<code>StaticTimeProxy</code></p>
+<p>然而这在大工程里面来说，可以是几乎不能接受的，需要修改很多个类。但是如果是动态代理，动态代理本身并不需要修改，只需要修改具体的实现类即可。</p>
+<p>为<code>TimeImpl</code>实现新的<code>getYear()</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">····</div><div class="line"></div><div class="line">@Override</div><div class="line">public int getYear() &#123;</div><div class="line">    Date date = new Date(System.currentTimeMillis());</div><div class="line">    Calendar calendar = Calendar.getInstance(Locale.CHINA);</div><div class="line">    calendar.setTime(date);</div><div class="line">    return calendar.get(Calendar.YEAR);</div><div class="line">&#125;</div><div class="line">····</div></pre></td></tr></table></figure>
+<p>测试代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static void main(String args[]) &#123;</div><div class="line">    TimeInterface timeInterface = (TimeInterface) new ReflectTimeProxy().getPoxy();</div><div class="line">    String time = timeInterface.getTime();</div><div class="line">    System.out.println(time);</div><div class="line">    System.out.println(timeInterface.getYear());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">1483605552828</div><div class="line"></div><div class="line">2017</div></pre></td></tr></table></figure>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p><a href="https://github.com/AlphaHans/JavaProxyDemo" target="_blank" rel="external">Github - JavaProxyDemo</a></p>
+<p><strong>-Hans</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/01/05/【JVM】内存分配与回收策略/" class="prev">PREV</a><a href="/2017/01/08/【JVM】类加载简述/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

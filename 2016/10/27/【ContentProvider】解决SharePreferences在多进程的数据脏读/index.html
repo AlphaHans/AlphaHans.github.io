@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【ContentProvider】解决SharePreferences在多进程的数据脏读.md · Hans Zone</title><meta name="description" content="【ContentProvider】解决SharePreferences在多进程的数据脏读.md - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【ContentProvider】解决SharePreferences在多进程的数据脏读.md</h1><div class="tags"></div><div class="post-info">Oct 27, 2016</div><div class="post-content"><h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>由于WebView内存泄露的原因，在工程中一般都会是用多进程。</p>
+<p>当用户第一次登陆完毕之后，在WebView所在的进程，通过<code>SharePreferences</code>获取token的时候，会发现获得到的数据为空。</p>
+<p>而重新启动App就正常了，查明原因是由<code>SharePreferences</code>脏读引起的。<br><a id="more"></a></p>
+<h2 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h2><p><strong>通过<code>ContentProvider</code>将<code>SharePreferences</code>放在一个进程里面进行操作</strong></p>
+<p>具体的解决方法已经在这篇文章里面有写:</p>
+<p><a href="http://melodyxxx.com/2016/08/04/%E5%A4%9A%E8%BF%9B%E7%A8%8B%E4%B8%AD%E5%AE%89%E5%85%A8%E7%9A%84%E4%BD%BF%E7%94%A8SharedPreferences/" target="_blank" rel="external">多进程中安全的使用SharedPreferences</a></p>
+<p>简而言之过程是：</p>
+<ul>
+<li><p>重写<code>ContentProvider</code>的<code>call</code>方法</p>
+</li>
+<li><p>调用 </p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">context.getContentResolver().call(sUri, PreferencesProvider.METHOD_PUT_BOOLEAN, null, data);</div></pre></td></tr></table></figure>
+<ul>
+<li>本质是通过<code>ContentProvider</code>的<code>aidl</code>实现的</li>
+</ul>
+<h2 id="本质"><a href="#本质" class="headerlink" title="本质"></a>本质</h2><p>通过<code>SharePreferences</code>源码分析，得出结果：</p>
+<ul>
+<li><p><code>SharePreferences</code>在创建的时候，就会讲数据加载到内存。内部采用<code>Map</code>集合进行数据的内存管理</p>
+</li>
+<li><p>若子进程的<code>SharePreferences</code>率先初始化</p>
+</li>
+<li><p>之后主进程通过<code>SharePreferences</code>修改了当前的数据，主进程的内存<code>Map</code>和磁盘都得到了修改</p>
+</li>
+<li><p>而子进程的<code>SharePreferences</code>实际上是不会有任何改变的</p>
+</li>
+</ul>
+<p>源代码分析可以看我的另外一篇笔记：<a href="http://www.hanszone.xyz/2016/10/27/%E3%80%90SharePreferences%E3%80%91%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_blank" rel="external">【SharePreferences】源码分析</a></p>
+<p><strong>-Hans 2016.10.27</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2016/10/27/【SharePreferences】源码分析/" class="prev">PREV</a><a href="/2016/11/05/【View】自定义一个倒数圆环/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

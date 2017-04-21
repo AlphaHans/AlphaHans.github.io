@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【JVM】类加载概述 · Hans Zone</title><meta name="description" content="【JVM】类加载概述 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【JVM】类加载概述</h1><div class="tags"><a href="/tags/JVM/" class="tag-title">#JVM</a></div><div class="post-info">Jan 8, 2017</div><div class="post-content"><a id="more"></a>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><p>深入理解Java虚拟机</p>
+</li>
+<li><p><a href="https://segmentfault.com/a/1190000004597758" target="_blank" rel="external">SegmentFault - Java类加载机制</a></p>
+</li>
+</ul>
+<h2 id="简述步骤"><a href="#简述步骤" class="headerlink" title="简述步骤"></a>简述步骤</h2><p>详细六步：</p>
+<p><img src="http://p1.bpimg.com/567571/b722b1616255bbdf.png" alt="类加载六大步骤"></p>
+<p>上图可以简化为：</p>
+<p>一个完整的类加载过程必须经历加载、连接、初始化这三个步骤：</p>
+<p><img src="http://p1.bpimg.com/567571/60fc57b67d71525f.png" alt="类加载简化步骤"></p>
+<h2 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h2><ul>
+<li><p>根据全限定名（带上包名）通过二进制流读入JVM内部</p>
+</li>
+<li><p>JVM将该字节码<strong>静态存储结构</strong>（如.class文件）转化为<strong>运行时结构</strong>保存到方法区</p>
+</li>
+<li><p>在方法区生成一个Class类，作为该类入口</p>
+</li>
+</ul>
+<p>特别注意第一点，JVM只是根据全限定名来读取二进制流，而没有说一定是从.class文件中</p>
+<ul>
+<li><p>从Zip包获取，衍生出后来的jar包、ear、war和包括<strong>Android中的Dex</strong>等等</p>
+</li>
+<li><p>从网络中获取，典型的Java Applet（虽然已经过时）</p>
+</li>
+<li><p>从其他文件生成，如JSP转化为Class类；还有Juby、Jhython等其他语言都是生成.class文件然后能够在JVM中执行</p>
+</li>
+<li><p>动态代理技术，在java.lang.relect.Proxy中，用ProxyGenerator.generateProxyClass为特定的接口生成“$Proxy”代理类的二进制流</p>
+</li>
+</ul>
+<p>备注：动态代理技术可以参考以下两篇文章：</p>
+<p><a href="http://yeungeek.com/2016/05/19/Android%E5%85%AC%E5%85%B1%E6%8A%80%E6%9C%AF%E7%82%B9%E4%B9%8B%E5%9B%9B-Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" target="_blank" rel="external">Android沉思录 - Android公共技术点之四-Java动态代理</a></p>
+<p><a href="http://p.codekk.com/blogs/detail/54cfab086c4761e5001b253d" target="_blank" rel="external">codeKK - 公共技术点之 Java 动态代理</a></p>
+<h2 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h2><p>目的：将JVM二进制字节流数据的类数据信息合并到JVM运行时的状态中</p>
+<p>三个阶段：</p>
+<ul>
+<li><p>1.验证</p>
+</li>
+<li><p>2.准备</p>
+</li>
+<li><p>3.解析</p>
+</li>
+</ul>
+<h3 id="验证阶段"><a href="#验证阶段" class="headerlink" title="验证阶段"></a>验证阶段</h3><p>相对于C/C++来说，Java是相对安全的语言：</p>
+<ul>
+<li><p>无法数组越界</p>
+</li>
+<li><p>对象转型无法转换为为实现的类型</p>
+</li>
+<li><p>不允许跳转到不存在的代码行数</p>
+</li>
+</ul>
+<p>如果这样做Java编译器会拒绝通过，但是加载也是说了Class文件的二进制流不一定来自编译器编译的.class文件。所以存在开发者直接操作字节码的可能，所以验证这一步非常有必要。</p>
+<p>验证阶段分为四个阶段：</p>
+<ul>
+<li><p>1.文件格式验证：是否以魔数0xCAFEBABE开头、主次版本范围是否在当前虚拟机处理范围、常量池是否有不支持的常量….等等</p>
+</li>
+<li><p>2.元数据验证：</p>
+<ul>
+<li><p>对字节码信息进行语义分析</p>
+</li>
+<li><p>是否有父类</p>
+</li>
+<li><p>是否继承不允许被继承的类</p>
+</li>
+<li><p>是不是抽象类</p>
+</li>
+<li><p>…等等</p>
+</li>
+</ul>
+</li>
+<li><p>3.字节码验证：</p>
+<ul>
+<li><p>最为复杂的阶段</p>
+</li>
+<li><p>保证操作数与操作类型匹配</p>
+</li>
+<li><p>保证跳转指令不会跳转出方法体以外的指令…  </p>
+</li>
+<li><p>这个阶段验证时间也会很长，所以JDK1.6之后在JVM和编译器在方法的Code属性中增加一个StackMapTable属性，用这个属性描述方法体的基本块。那么在验证时就不需要根据程序推导，只需检查StackMapTable属性即可。但是理论上StackMapTable也是存在串改可能</p>
+</li>
+</ul>
+</li>
+<li><p>4.符号引用验证：</p>
+<ul>
+<li><p>发生在JVM将符号引用转化为直接引用的时候（在连接的第三阶段 解析的时候发生）</p>
+</li>
+<li><p>通过权限定名能否找到类</p>
+</li>
+<li><p>类、字段、方法的访问合法性（public protected private default）</p>
+</li>
+<li><p>….</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h3><p>准备阶段比较简单，可以概括为：为类进行内存分配，如：初始化常量等</p>
+<h3 id="解析阶段"><a href="#解析阶段" class="headerlink" title="解析阶段"></a>解析阶段</h3><p>解析阶段：符号引用替换为直接引用的过程</p>
+<p>符号引用：使用一组符号来描述所引用的目标，可以用任何字面量，只要能够无歧义地定位即可。不一定在内存。</p>
+<p>直接引用：直接引用是可以直接指向目标的指针，目标已经在内存中。</p>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>初始化阶段也很简单：最贴近开发者的阶段，初始化static final成员变量、方法等</p>
+<p><strong>-Hans</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/01/05/【设计模式】Java静态代理与动态代理/" class="prev">PREV</a><a href="/2017/01/09/【JVM】ClassLoader.md/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

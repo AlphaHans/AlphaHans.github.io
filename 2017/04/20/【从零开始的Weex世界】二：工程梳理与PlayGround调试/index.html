@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【从零开始的Weex世界】二：工程梳理与PlayGround调试 · Hans Zone</title><meta name="description" content="【从零开始的Weex世界】二：工程梳理与PlayGround调试 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【从零开始的Weex世界】二：工程梳理与PlayGround调试</h1><div class="tags"><a href="/tags/Weex/" class="tag-title">#Weex</a></div><div class="post-info">Apr 20, 2017</div><div class="post-content"><h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><ul>
+<li>了解工程目录</li>
+<li>理解Weex工作原理</li>
+</ul>
+<a id="more"></a>
+<h2 id="工程目录说明"><a href="#工程目录说明" class="headerlink" title="工程目录说明"></a>工程目录说明</h2><p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feulualy9aj20a40ebmxl.jpg" alt=""></p>
+<ul>
+<li><p>assets 存放的是一些工程开发中需要用到的文件代码，如qrcode.js就是用于生成二维码的js</p>
+</li>
+<li><p>build 我也不清楚，一般不会用到也不会修改</p>
+</li>
+<li><p>dist app.web.js和app.weex.js输出目录，即输出的JSBundle代码</p>
+</li>
+<li><p>node_module 依赖模块</p>
+</li>
+<li><p>src 我们的代码存放文件夹</p>
+</li>
+<li><p>app.js 入口entry，当我们启动工程的时候，这个文件是入口</p>
+</li>
+<li><p>config.js 不需要修改</p>
+</li>
+<li><p>index.html PC端网页的html文件，我们可以看到里面有qrcode的二维码代码。对应声明app.web.js的JSBundle</p>
+</li>
+<li><p>package.json npm需要的配置文件</p>
+</li>
+<li><p>webpack.config.json webpack的配置文件</p>
+</li>
+<li><p>weex.html 移动端的入口文件，对应生成app.weex.js的JSBundle</p>
+</li>
+</ul>
+<h2 id="梳理工程"><a href="#梳理工程" class="headerlink" title="梳理工程"></a>梳理工程</h2><ul>
+<li>我们打算将Hello world改成Hello，Weex世界！</li>
+</ul>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feum1jwaunj20sw0kqjsh.jpg" alt=""></p>
+<ul>
+<li>找到src文件下的foo.vue（自带的）<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;text class=&quot;title&quot;&gt;Hello &#123;&#123;target&#125;&#125;&lt;/text&gt;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>两个大括号是Vue自带的语法糖，表明这里是使用target变量中的字符串。</p>
+<p>这种语法很奇怪，最终会经过webpack的vue-loader生成浏览器可以识别的html、css、js文件</p>
+<p>那么修改其中的变量即可：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;script&gt;</div><div class="line"></div><div class="line">  export default &#123;</div><div class="line"></div><div class="line">    data: &#123;</div><div class="line"></div><div class="line">      logoUrl: &apos;https://alibaba.github.io/weex/img/weex_logo_blue@3x.png&apos;,</div><div class="line"></div><div class="line">      target: &apos;Weex世界！！&apos;</div><div class="line"></div><div class="line">    &#125;,</div><div class="line"></div><div class="line">    methods: &#123;</div><div class="line"></div><div class="line">      update: function (e) &#123;</div><div class="line"></div><div class="line">        this.target = &apos;Weex&apos;</div><div class="line"></div><div class="line">        console.log(&apos;target:&apos;, this.target)</div><div class="line"></div><div class="line">      &#125;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">  &#125;</div><div class="line"></div><div class="line">&lt;/script&gt;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>开启了<code>npm run dev</code>，我们直接刷新网页即可看到已经成功修改了</li>
+</ul>
+<h2 id="这是怎么做到的呢？"><a href="#这是怎么做到的呢？" class="headerlink" title="这是怎么做到的呢？"></a>这是怎么做到的呢？</h2><ul>
+<li><p>上文说了，app.js是我们打包的入口</p>
+</li>
+<li><p>查看app.js文件</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">import foo from &apos;./src/foo.vue&apos; //导入foo.vue组件</div><div class="line"></div><div class="line">foo.el = &apos;#root&apos; //挂载到root div下</div><div class="line"></div><div class="line">export default new Vue(foo); //导出</div></pre></td></tr></table></figure>
+<ul>
+<li>查看weex.html</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">...</div><div class="line"></div><div class="line">&lt;body&gt;</div><div class="line"></div><div class="line">  &lt;div id=&quot;root&quot;&gt;&lt;/div&gt; //foo.vue被包裹在此</div><div class="line"></div><div class="line">  &lt;script src=&quot;./dist/app.web.js&quot;&gt;&lt;/script&gt;</div><div class="line"></div><div class="line">&lt;/body&gt;</div><div class="line"></div><div class="line">...</div></pre></td></tr></table></figure>
+<ul>
+<li>从上面步骤我们可以知道了：修改foo.vue如何导致weex.html被修改</li>
+</ul>
+<h2 id="使用Playground"><a href="#使用Playground" class="headerlink" title="使用Playground"></a>使用Playground</h2><ul>
+<li><p>从官网下载playground安装到手机</p>
+</li>
+<li><p>通过app内二维码扫描网页的二维码，那么我们就可以看到app.weex.js渲染在我们的手机上了（注意要在一个wifi下）</p>
+</li>
+</ul>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feumc9r8b4j218g1z4n0i.jpg" alt=""></p>
+<h2 id="Debug调试"><a href="#Debug调试" class="headerlink" title="Debug调试"></a>Debug调试</h2><ul>
+<li><p>使用weex的debug模式</p>
+</li>
+<li><p>输入命令</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run debug</div></pre></td></tr></table></figure>
+<ul>
+<li><p>然后参考官方文档学习如何使用playground进行调试</p>
+</li>
+<li><p>注意这个很重要，可以少走很多弯路</p>
+</li>
+</ul>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/04/19/【从零开始的Weex世界】一：Hello,Weex!/" class="prev">PREV</a><a href="/2017/04/21/【从零开始的Weex世界】三：添加一个AppBar/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

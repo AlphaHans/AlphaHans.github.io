@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【JVM】内存分配与回收策略 · Hans Zone</title><meta name="description" content="【JVM】内存分配与回收策略 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【JVM】内存分配与回收策略</h1><div class="tags"><a href="/tags/JVM/" class="tag-title">#JVM</a></div><div class="post-info">Jan 5, 2017</div><div class="post-content"><a id="more"></a>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>深入理解Java虚拟机</li>
+</ul>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>分配与回收策略并不是固定的，细节取决于当前虚拟机的垃圾收集器的组合以及参数设置等；</p>
+<p>但可以了解几个普遍的策略：</p>
+<ul>
+<li><p>对象优先在Eden区分配</p>
+</li>
+<li><p>大对象直接进入老年代</p>
+</li>
+<li><p>长期存活对象进入老年代</p>
+</li>
+<li><p>动态对象年龄判断</p>
+</li>
+<li><p>空间分配担保</p>
+</li>
+</ul>
+<h2 id="对象优先在Eden区分配"><a href="#对象优先在Eden区分配" class="headerlink" title="对象优先在Eden区分配"></a>对象优先在Eden区分配</h2><p>大多数情况下，新建的对象都是在Eden区分配。若当前Eden区空间不足时，就会触发一次Minor GC，回收空间。</p>
+<h2 id="大对象直接进入老年代"><a href="#大对象直接进入老年代" class="headerlink" title="大对象直接进入老年代"></a>大对象直接进入老年代</h2><p>大对象指的是，需要占用大量连续内存空间的对象：数字、很长的字符串等等</p>
+<p>及时内存存在足够大的空间，但是由于不连续，也需要提前触发垃圾回收机制，来进行内存的回收压缩</p>
+<h2 id="动态对象年龄判断"><a href="#动态对象年龄判断" class="headerlink" title="动态对象年龄判断"></a>动态对象年龄判断</h2><p>虚拟机采用分代思想来管理对象，那么虚拟机就需要识别哪些对象是放在新生代、老年代的。</p>
+<p>为此虚拟机给每一个对象设置了一个年龄计数器。如果该对象在Eden区，经过一次Minor GC之后依然存活，并且能被Survivor区容纳的话，就移动到Survivor空间，并且年龄+1。</p>
+<p>达到一定年龄之后（默认15），对象就会提升到老年代。</p>
+<h2 id="空间分配担保"><a href="#空间分配担保" class="headerlink" title="空间分配担保"></a>空间分配担保</h2><p>过程描述：</p>
+<ul>
+<li><p>1.在发生Minor GC的时候，虚拟机会检查老年代最大的可用连续空间是否大于新生代所有对象的总空间</p>
+</li>
+<li><p>2.如果上述条件成立，那么则此次Minor GC是安全的。（因为老年代有足够大的空间将所有的对象容纳进去）</p>
+</li>
+<li><p>3.如果上述条件不成立，那么虚拟机就需要查看是否允许担保失败。</p>
+</li>
+<li><p>4.如果不允许，则直接触发一次Major GC（Full GC）。</p>
+</li>
+<li><p>5.如果允许，那么则要逐一检查老年代的最大可用连续空间是否大于历次晋升到老年代对象的平均大小；如果大于，则会<strong>冒险尝试</strong>进行一次Minor GC</p>
+</li>
+</ul>
+<h3 id="疑问一"><a href="#疑问一" class="headerlink" title="疑问一"></a>疑问一</h3><p>对于第1步，有一个疑问：用老年代最大连续空间与新生代所有对象总空间比较？</p>
+<p>个人见解：</p>
+<ul>
+<li><p>其实我觉得老年代最大连续空间大于所有对象的平均大小或者大于最大对象的空间即可（深入理解Java虚拟机一书里面是这样写到，目前还没有想明白）</p>
+</li>
+<li><p>但不能用老年代的可以使用的总空间与新生代的已占用的总空间比较。原因是假设新生代有一个要求连续空间的对象，而老年代并没有足够大的连续空间进行分配。这里就应该触发Major GC了，所以Minor GC此时是不安全的</p>
+</li>
+</ul>
+<h3 id="疑问二"><a href="#疑问二" class="headerlink" title="疑问二"></a>疑问二</h3><p>为何是历次晋升到老年代对象的平均大小？以及为何是冒险尝试？</p>
+<p>原因如下：</p>
+<ul>
+<li><p>新生代采用的复制算法，为了内存的利用率，只使用一个Survivor进行轮换备份</p>
+</li>
+<li><p>因此当大量的对象在一次Minor GC还存活的时候（极端情况下，全部都存活），此时就需要    老年代进行担保分配（即老年代需要保证能够将所有新生代存活的对象全部保存）</p>
+</li>
+<li><p>不过当Minor GC还没有触发时，老年代并不能知道新生代会存活下多少对象（即要求多大的对象），那么老年代只能根据以往的历次晋升到老年代对象大小的平均值作为参考，与剩余空间作对比，决定是否不触发Minor GC，而是触发Major GC（Full GC）</p>
+</li>
+<li><p>当时由于平均值是一个估算，并不一定能够满足当前的新生代中最大对象的要求，所以是冒险进行Major GC，如果失败的话还是要重新进行一次Major GC</p>
+</li>
+</ul>
+<p><strong>-Hans</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/01/05/【JVM】高级GC算法之分代回收算法/" class="prev">PREV</a><a href="/2017/01/05/【设计模式】Java静态代理与动态代理/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

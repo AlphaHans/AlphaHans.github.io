@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【选择图片Jar】拨云见日-GalleryAdapter完整代码（四） · Hans Zone</title><meta name="description" content="【选择图片Jar】拨云见日-GalleryAdapter完整代码（四） - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【选择图片Jar】拨云见日-GalleryAdapter完整代码（四）</h1><div class="tags"></div><div class="post-info">Jan 29, 2016</div><div class="post-content"><p></p><h3>1.开篇</h3><br>经过前面（二）（三）两篇文章的基础，现在终于迎来激动人心的时刻啦！！拨云见日-GalleryAdapter的完整代码！<br><a id="more"></a><p></p>
+<p></p><h3>2.构造方法</h3><br>首先我们看看他的构造方法和成员变量<p></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public class GalleryAdapter extends BaseAdapter &#123;</div><div class="line">	// 路径集合</div><div class="line">	private List&lt;String&gt; mPaths;</div><div class="line">	// 上下文</div><div class="line">	private Context mContext;</div><div class="line">	// 选中状态管理器</div><div class="line">	private SparseBooleanArray mSparseManager;</div><div class="line">	// 右上角脚标的图片id</div><div class="line">	private int mSelectedIcon, mUnSelectedIcon;</div><div class="line">	// 选中状态的ColorFilter颜色代码</div><div class="line">	private int mSelectedColor, mUnSelectedColor;</div><div class="line"></div><div class="line">	public GalleryAdapter(Context context, List&lt;String&gt; list, int selectedIcon,</div><div class="line">			int unselectedIcon) &#123;</div><div class="line">		this.mPaths = list;</div><div class="line">		this.mContext = context;</div><div class="line">		mSparseManager = new SparseBooleanArray();</div><div class="line">		mSelectedIcon = selectedIcon;</div><div class="line">		mUnSelectedIcon = unselectedIcon;</div><div class="line">		mSelectedColor = Color.parseColor(&quot;#77000000&quot;);</div><div class="line">		mUnSelectedColor = Color.parseColor(&quot;#00000000&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>需要解释的是这两个mSelectedIcon 和mUnSelectedIcon。在第一篇文章说了，我们不能够将资源文件打包进入jar,所以这里需要让项目传入两个id，一个选中状态图片的id一个是未选中状态图片的id。<br>具体指的是，右上角的那两个图标~<br>1.选中状态：<br><img src="http://img.blog.csdn.net/20160129151112311" alt="这里写图片描述"><br>2.未选中状态：<br><img src="http://img.blog.csdn.net/20160129151147806" alt="这里写图片描述"></p>
+<p></p><h3>3.核心方法getView()</h3><br>像继承于BaseAdapter的另外三个方法就不说啦，我们来看看核心的getView()方法中的处理。代码！代码！我们来看看代码！<p></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">	public View getView(int position, View convertView, ViewGroup parent) &#123;</div><div class="line">		ViewHolder viewHolder = null;</div><div class="line">		if (convertView == null) &#123;</div><div class="line">			viewHolder = new ViewHolder();</div><div class="line">			convertView = new ChosePhotoItemLayout(mContext);</div><div class="line">			viewHolder.show =((ChosePhotoItemLayout)convertView)</div><div class="line">							.getShowImageView();</div><div class="line">			viewHolder.select = ((ChosePhotoItemLayout) convertView).getSelectImageView();</div><div class="line">			</div><div class="line">			convertView.setTag(viewHolder);</div><div class="line">		&#125; else &#123;</div><div class="line">			viewHolder = (ViewHolder) convertView.getTag();</div><div class="line">		&#125;</div><div class="line">		//当前图片的path</div><div class="line">		String path = mPaths.get(position);</div><div class="line">		</div><div class="line">		//设置ShowImageView的tag</div><div class="line">		viewHolder.show.setTag(path);</div><div class="line">		ImageLoaderWrapper.loadFromFile(viewHolder.show, path);</div><div class="line">		//设置SelectImageView的tag</div><div class="line">		viewHolder.select.setTag(path + &quot;select&quot;);</div><div class="line">		// 处理滑动错位</div><div class="line">		handleScrollBackgroundChange(position, viewHolder.show,</div><div class="line">				viewHolder.select);</div><div class="line">		</div><div class="line">		return convertView;</div><div class="line">	&#125;</div><div class="line">``` </div><div class="line">大体上没有什么特别的。还是老套路创建一个ViewHolder然后进行控件缓存等等。</div></pre></td></tr></table></figure>
+<p>convertView = new ChosePhotoItemLayout(mContext);</p>
+<p>viewHolder.show =((ChosePhotoItemLayout)convertView)<br>                .getShowImageView();</p>
+<p>viewHolder.select = ((ChosePhotoItemLayout)convertView).getSelectImageView();<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">这段代码看不懂的 可以回顾一下上一篇文章[【选择图片Jar】Adapter的item布局的实现（三）](http://blog.csdn.net/qq_18402085/article/details/50607279)</div><div class="line"></div><div class="line">OK！下面我们来看看这次比较重要的两段代码：</div></pre></td></tr></table></figure></p>
+<p>//设置ShowImageView的tag<br>viewHolder.show.setTag(path);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">以及</div></pre></td></tr></table></figure></p>
+<p>//设置SelectImageView的tag<br>viewHolder.select.setTag(path + “select”);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">这两段代码为后面的点击事件做铺垫的~如果不明白这个是什么作用的可以理解成和findViewById一样，我们为每个控件做了唯一的标识。</div><div class="line"></div><div class="line">方便我们处理GridView的点击事件~然后更改相应的点击状态。</div></pre></td></tr></table></figure></p>
+<p>// 处理滑动错位<br>handleScrollBackgroundChange(position, viewHolder.show,<br>                viewHolder.select);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">这段代码看不懂的可以回顾一下第二篇文章[【选择图片Jar】Adapter的实现之SparseBooleanArray图片状态管理器（二）](http://blog.csdn.net/qq_18402085/article/details/50606902)</div><div class="line"></div><div class="line">OK!至此 核心的方法getView()已经分析完毕</div><div class="line"></div><div class="line">&lt;h3&gt;4.其他两个方法&lt;/3&gt;</div></pre></td></tr></table></figure></p>
+<pre><code>/**
+* 对外暴露图片管理器
+*/
+public SparseBooleanArray getSparseBooleanArray() {
+    return mSparseManager;
+}
+
+/**
+* 更新Adpter数据的方法
+*/
+public void update(List&lt;String&gt; list) {
+    mPaths = list;
+    mSparseManager.clear();//特别注意清除所有保存的状态
+    this.notifyDataSetChanged();
+}
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">相信这两个方法也非常好理解~！！</div><div class="line"></div><div class="line">&lt;h3&gt;5.GalleryAdapter完整代码&lt;/h3&gt;</div><div class="line">OK!经过几篇文章的铺垫的描述，相信GalleryAdapter完整代码已经在各位的心中浮出水面了~ 下面贴上完整代码</div></pre></td></tr></table></figure>
+<p>public class GalleryAdapter extends BaseAdapter {<br>    // 路径集合<br>    private List<string> mPaths;<br>    // 上下文<br>    private Context mContext;<br>    // 选中状态管理器<br>    private SparseBooleanArray mSparseManager;<br>    // 右上角脚标的图片id<br>    private int mSelectedIcon, mUnSelectedIcon;<br>    // 选中状态的ColorFilter颜色代码<br>    private int mSelectedColor, mUnSelectedColor;</string></p>
+<pre><code>public GalleryAdapter(Context context, List&lt;String&gt; list, int selectedIcon,
+        int unselectedIcon) {
+    this.mPaths = list;
+    this.mContext = context;
+    mSparseManager = new SparseBooleanArray();
+    mSelectedIcon = selectedIcon;
+    mUnSelectedIcon = unselectedIcon;
+    mSelectedColor = Color.parseColor(&quot;#77000000&quot;);
+    mUnSelectedColor = Color.parseColor(&quot;#00000000&quot;);
+}
+
+@Override
+public int getCount() {
+    return mPaths.size();
+}
+
+@Override
+public Object getItem(int position) {
+    return mPaths.get(position);
+}
+
+@Override
+public long getItemId(int position) {
+    return position;
+}
+
+@Override
+public View getView(int position, View convertView, ViewGroup parent) {
+    ViewHolder viewHolder = null;
+    if (convertView == null) {
+        viewHolder = new ViewHolder();
+        // convertView = mLayoutInflater.inflate(R.layout.item_grid, parent,
+        // false);
+        // viewHolder.show = (ImageView) convertView
+        // .findViewById(R.id.grid_iv_pic);
+        // viewHolder.select = (ImageView) convertView
+        // .findViewById(R.id.grid_iv_button);
+        convertView = new ChosePhotoItemLayout(mContext);
+        viewHolder.show = ((ChosePhotoItemLayout) convertView)
+                .getShowImageView();
+        viewHolder.select = ((ChosePhotoItemLayout) convertView)
+                .getSelectImageView();
+        convertView.setTag(viewHolder);
+
+    } else {
+        viewHolder = (ViewHolder) convertView.getTag();
+    }
+    // if (position == 0) {
+    // ImageLoader.getInstance().displayImage(&quot;drawable://&quot; + mIconId,
+    // viewHolder.mIv_pic);
+    // // 隐藏右上角图标
+    // viewHolder.mIv_chose.setImageDrawable(new BitmapDrawable());
+    // } else {
+    String path = mPaths.get(position);
+
+    // 设置ShowImageView的tag
+    viewHolder.show.setTag(path);
+    ImageLoaderWrapper.loadFromFile(viewHolder.show, path);
+    // ImageLoader.getInstance().displayImage(&quot;file:///&quot; + mPath,
+    // viewHolder.show);
+    // }
+
+    // 设置SelectImageView的tag
+    viewHolder.select.setTag(path + &quot;select&quot;);
+    // 处理滑动错位
+    handleScrollBackgroundChange(position, viewHolder.show,
+            viewHolder.select);
+    return convertView;
+}
+
+/**
+ * 对外暴露图片管理器
+ */
+public SparseBooleanArray getSparseBooleanArray() {
+    return mSparseManager;
+}
+
+/**
+ * 主要用来在选中操作时候，处理滑动错位的图片显示问题
+ */
+private void handleScrollBackgroundChange(int position, ImageView show,
+        ImageView select) {
+    int selectBtnBackground;
+    int colorFilter;
+    // if (position != 0) {
+    if (isItemChecked(position)) {
+        selectBtnBackground = mSelectedIcon;
+        colorFilter = mSelectedColor;
+    } else {
+        selectBtnBackground = mUnSelectedIcon;
+        colorFilter = mUnSelectedColor;
+    }
+    show.setColorFilter(colorFilter);
+    // ImageLoader.getInstance().displayImage(
+    // &quot;drawable://&quot; + selectBtnBackground, select);
+    ImageLoaderWrapper.loadFromDrawable(select, selectBtnBackground);
+    // } else {
+
+    // }
+}
+
+private boolean isItemChecked(int position) {
+    if (mSparseManager != null) {
+        return mSparseManager.get(position);
+    }
+    return false;
+}
+
+/**
+ * 更新Adpter数据的方法
+ */
+public void update(List&lt;String&gt; list) {
+    mPaths = list;
+    mSparseManager.clear();// 特别注意清除所有保存的状态
+    this.notifyDataSetChanged();
+}
+
+private class ViewHolder {
+    ImageView show;
+    ImageView select;
+}
+</code></pre><p>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;h3&gt;6.附上ImageLoaderWrapper的代码&lt;/h3&gt;</div></pre></td></tr></table></figure></p>
+<p>public class ImageLoaderWrapper {</p>
+<pre><code>public static void loadFromFile(ImageView view, String 
+path) {
+    ImageLoader.getInstance().displayImage(&quot;file:///&quot; + path, view);
+}
+
+public static void loadFromDrawable(ImageView view, int drawableId) {
+    ImageLoader.getInstance()
+            .displayImage(&quot;drawable://&quot; + drawableId, view);
+}
+</code></pre><p>}<br>``` </p>
+<p>非常简单的代码。 是第三方库的UniversalImageLoader的包装。<br><a href="https://github.com/nostra13/Android-Universal-Image-Loader" target="_blank" rel="external">UniversalImageLoader Github</a></p>
+<p></p><h3>7.结束语</h3><br>至此，完整的GalleryAdapter已经完毕了~希望还是要勤打代码，巩固知识！ 代码是最好的老师！<p></p>
+<p>下面文章将讲解具体：<br>GalleryAdapter通过GalleryGridViewController实现与GalleryGridView的逻辑</p>
+</div></article></div></main><footer><div class="paginator"><a href="/2016/01/29/【选择图片Jar】Adapter的item布局的实现（三）/" class="prev">PREV</a><a href="/2016/01/29/【选择图片Jar】“MVC“来实现逻辑处理与View视图的分离（五）/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

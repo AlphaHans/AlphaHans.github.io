@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【LeakCanary】展示-AbstractAnalysisResultService与DisplayLeakService.md · Hans Zone</title><meta name="description" content="【LeakCanary】展示-AbstractAnalysisResultService与DisplayLeakService.md - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【LeakCanary】展示-AbstractAnalysisResultService与DisplayLeakService.md</h1><div class="tags"><a href="/tags/LeakCanary/" class="tag-title">#LeakCanary</a></div><div class="post-info">Mar 3, 2017</div><div class="post-content"><h2 id="AbstractAnalysisResultService"><a href="#AbstractAnalysisResultService" class="headerlink" title="AbstractAnalysisResultService"></a>AbstractAnalysisResultService</h2><ul>
+<li><p>继承自<code>IntentService</code></p>
+</li>
+<li><p>从名字可以看出是定义一个分析内存泄露结果的<code>Service</code></p>
+</li>
+</ul>
+<a id="more"></a>
+<h3 id="sendResultToListener方法"><a href="#sendResultToListener方法" class="headerlink" title="sendResultToListener方法"></a>sendResultToListener方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static void sendResultToListener(Context context, String listenerServiceClassName, HeapDump heapDump, AnalysisResult result) &#123;</div><div class="line">    Class listenerServiceClass;</div><div class="line">    try &#123;</div><div class="line">        listenerServiceClass = Class.forName(listenerServiceClassName);</div><div class="line">    &#125; catch (ClassNotFoundException var6) &#123;</div><div class="line">        throw new RuntimeException(var6);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Intent intent = new Intent(context, listenerServiceClass);</div><div class="line">    intent.putExtra(&quot;heap_dump_extra&quot;, heapDump);</div><div class="line">    intent.putExtra(&quot;result_extra&quot;, result);</div><div class="line">    context.startService(intent);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p><code>listenerServiceClassName</code>可以从代码看出，使用反射获取了对应的<code>Class</code>，然后传入到<code>Intent</code>。 </p>
+</li>
+<li><p>这里的作用，是启动对应的实现<code>Service</code>。 后面分析可以知道该子类就是<code>DisplayLeakService</code></p>
+</li>
+<li><p><code>HeapDump</code> 根据<code>HeapDump</code>的成员变量</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public final File heapDumpFile;</div><div class="line">public final String referenceKey;</div><div class="line">public final String referenceName;</div><div class="line">public final ExcludedRefs excludedRefs;</div><div class="line">public final long watchDurationMs;</div><div class="line">public final long gcDurationMs;</div><div class="line">public final long heapDumpDurationMs;</div></pre></td></tr></table></figure>
+<p>可以知道，这个类主要是包含了当前内存分析的内容。比如File heapDumpFile保存了具体的内存信息</p>
+<ul>
+<li><code>AnalysisResult</code> 根据名字和成员变量</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public final boolean leakFound;</div><div class="line">public final boolean excludedLeak;</div><div class="line">public final String className;</div><div class="line">public final LeakTrace leakTrace;</div><div class="line">public final Throwable failure;</div><div class="line">public final long retainedHeapSize;</div><div class="line">public final long analysisDurationMs;</div></pre></td></tr></table></figure>
+<p>可以知道，这个类就是记录分析结果的 如boolean leakFound可以看出来</p>
+<h3 id="其他方法"><a href="#其他方法" class="headerlink" title="其他方法"></a>其他方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public AbstractAnalysisResultService() &#123;</div><div class="line">    super(AbstractAnalysisResultService.class.getName());</div><div class="line">&#125;</div><div class="line"></div><div class="line">protected final void onHandleIntent(Intent intent) &#123;</div><div class="line">    HeapDump heapDump = (HeapDump)intent.getSerializableExtra(&quot;heap_dump_extra&quot;);</div><div class="line">    AnalysisResult result = (AnalysisResult)intent.getSerializableExtra(&quot;result_extra&quot;);</div><div class="line"></div><div class="line">    try &#123;</div><div class="line">        this.onHeapAnalyzed(heapDump, result);</div><div class="line">    &#125; finally &#123;</div><div class="line">        heapDump.heapDumpFile.delete();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line">protected abstract void onHeapAnalyzed(HeapDump var1, AnalysisResult var2);</div></pre></td></tr></table></figure>
+<ul>
+<li><p><code>onHandleIntent</code>获取从<code>sendResultToListener</code>的<code>HeapDump</code>和<code>AnalysisResult</code></p>
+</li>
+<li><p>通过抽象方法<code>onHeapAnalyzed</code>让子类去具体处理</p>
+</li>
+</ul>
+<h2 id="DisplayLeakService"><a href="#DisplayLeakService" class="headerlink" title="DisplayLeakService"></a>DisplayLeakService</h2><ul>
+<li><p>直接继承<code>AbstarctAnalysisResultService</code> 实现了<code>onHeapAnalyzed</code>方法</p>
+</li>
+<li><p>在<code>onHeapAnalyzed</code>方法具体对<code>HeapDump</code>和<code>AnalysisResult</code>进行相关展示处理</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">protected final void onHeapAnalyzed(HeapDump heapDump, AnalysisResult result) &#123;</div><div class="line">    //...</div><div class="line">    int notificationId1 = (int)(SystemClock.uptimeMillis() / 1000L);</div><div class="line">    LeakCanaryInternals.showNotification(this, contentTitle, contentText, pendingIntent, notificationId1);</div><div class="line">    this.afterDefaultHandling(heapDump, result, leakInfo);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p><code>LeakCanaryInternals.showNotification</code>可以知道，显示在状态栏内存泄露提示的地方。</p>
+</li>
+<li><p>其他细节就不具体去看了，如Notification的title、content的内容、以及是否需要保存<code>HeadDump</code>文件，都是具体的细微逻辑</p>
+</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li><p>这样子的设计，可以让开发者自定义对于<code>HeapDump</code>和<code>AnalysisResult</code>的具体流程</p>
+</li>
+<li><p>扩展性好</p>
+</li>
+</ul>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/03/03/【LeakCanary】入口-ActivityRefWatcher/" class="prev">PREV</a><a href="/2017/03/05/【Java基础】浅析Java四大引用与ReferenceQueue/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

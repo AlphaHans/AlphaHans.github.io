@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【从零开始的Weex世界】一：Hello,Weex! · Hans Zone</title><meta name="description" content="【从零开始的Weex世界】一：Hello,Weex! - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【从零开始的Weex世界】一：Hello,Weex!</h1><div class="tags"><a href="/tags/Weex/" class="tag-title">#Weex</a></div><div class="post-info">Apr 19, 2017</div><div class="post-content"><h2 id="安装weex开发环境"><a href="#安装weex开发环境" class="headerlink" title="安装weex开发环境"></a>安装weex开发环境</h2><ul>
+<li>参照官网文档安装即可</li>
+</ul>
+<p>我的环境是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">node:v6.10.2</div><div class="line"></div><div class="line">weex:v1.0.5</div><div class="line"></div><div class="line">weex-devtool:v0.2.80</div><div class="line"></div><div class="line">weexpack:v0.4.0</div></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="创建weex工程"><a href="#创建weex工程" class="headerlink" title="创建weex工程"></a>创建weex工程</h2><ul>
+<li><p>选定好一个目录，打开终端</p>
+</li>
+<li><p>初始化weex工程：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">weex init</div></pre></td></tr></table></figure>
+<ul>
+<li>安装node_module依赖：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm install</div></pre></td></tr></table></figure>
+<h2 id="编译Weex工程"><a href="#编译Weex工程" class="headerlink" title="编译Weex工程"></a>编译Weex工程</h2><ul>
+<li>运行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run build</div></pre></td></tr></table></figure>
+<p>这个命令是什么意思呢？</p>
+<p>可以参考：<a href="http://www.ruanyifeng.com/blog/2016/10/npm_scripts.html" target="_blank" rel="external">阮一峰的网络日志 - npm</a></p>
+<p>实际上这个命令就是npm在package.json文件里面，定义的脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&quot;scripts&quot;: &#123;</div><div class="line"></div><div class="line">    &quot;build&quot;: &quot;webpack&quot;,</div><div class="line"></div><div class="line">    &quot;dev&quot;: &quot;webpack --watch&quot;,</div><div class="line"></div><div class="line">    &quot;serve&quot;: &quot;node build/init.js &amp;&amp; serve -p 8080&quot;,</div><div class="line"></div><div class="line">    &quot;debug&quot;: &quot;weex-devtool&quot;</div><div class="line"></div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>其实</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run build</div></pre></td></tr></table></figure>
+<p>等价于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">webpack</div></pre></td></tr></table></figure>
+<p>此外，可以看到这里四个脚本：</p>
+<ul>
+<li><p>build：通过webpack打包工具进行打包</p>
+</li>
+<li><p>dev：使用webpack –watch进行网页动态刷新呢</p>
+</li>
+<li><p>serve：开启本地服务</p>
+</li>
+<li><p>debug：开启weex调试</p>
+</li>
+</ul>
+<p>注：</p>
+<ul>
+<li><p>webpack是前端新一代的打包工具，具体可以参考：<a href="http://www.imooc.com/learn/802" target="_blank" rel="external">imooc幕课网 - webpack深入与实战</a> 进行学习</p>
+</li>
+<li><p>强烈推荐先看一下上面的视频，能够更好理解webpack.config.json</p>
+</li>
+</ul>
+<h2 id="启动Weex工程"><a href="#启动Weex工程" class="headerlink" title="启动Weex工程"></a>启动Weex工程</h2><ul>
+<li>经过上面编译</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run build</div></pre></td></tr></table></figure>
+<p>之后可以看到在/dist目录下输出了两个文件：app.web.js和app.weex.js（具体的内容的意思，通过上面慕课网webpack视频之后即可大致了解）</p>
+<ul>
+<li>开启动态编译代码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run dev //等于 webpack --watch</div></pre></td></tr></table></figure>
+<p>会显示：</p>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feul4uqwpvj20jd0da0up.jpg" alt="npm run dev"></p>
+<p>这样一来，我们修改代码；就会实时编译成app.web.js和app.weex.js，而不需要我们每次都通过<code>npm run build</code>命令进行编译</p>
+<ul>
+<li>启动Weex工程</li>
+</ul>
+<p>开启另一个终端，然后运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run serve</div></pre></td></tr></table></figure>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feul7zsu52j20jd0datad.jpg" alt="npm run serve"></p>
+<ul>
+<li>在浏览器访问<code>localhost:8080</code>即可</li>
+</ul>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feulmmsh1fj21hc0qp0uw.jpg" alt=""></p>
+<p>说明启动成功了</p>
+<h2 id="小插曲"><a href="#小插曲" class="headerlink" title="小插曲"></a>小插曲</h2><p>一开始我直接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">npm run serve</div></pre></td></tr></table></figure>
+<p>是这样的</p>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feulnvif1ij21hc0qqac8.jpg" alt=""></p>
+<p>一片空白，我们打开控制台可以看到：</p>
+<p><img src="http://ww1.sinaimg.cn/large/7cbc163dgy1feulowdm83j21hc0b0jw7.jpg" alt=""></p>
+<p>Google发现解决方法：<a href="https://segmentfault.com/q/1010000008829493" target="_blank" rel="external">Segmentfault - weex-vue-render 如何查看更新日志</a></p>
+<p>问题原因：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">http://localhost:8080/node_modules/weex-vue-render/index.js这个在最新版本已经去掉了。 要换成http://localhost:8080/node_modules/weex-vue-render/dist/index.js. 注意多了个dist</div></pre></td></tr></table></figure>
+<p><strong>我的weex-vue-render版本是0.11.3，产生这个问题的原因是weex工具更新没有跟上weex-vue-render的更新</strong></p>
+<p>修改措施：</p>
+<p>找到工程weex.html文件中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;script src=&quot;./node_modules/weex-vue-render/index.js&quot;&gt;&lt;/script&gt;</div></pre></td></tr></table></figure>
+<p>修改为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;script src=&quot;./node_modules/weex-vue-render/dist/index.js&quot;&gt;&lt;/script&gt;</div></pre></td></tr></table></figure></div></article></div></main><footer><div class="paginator"><a href="/2017/03/22/【数据结构】震惊！SparseArray高效的原因居然是...！/" class="prev">PREV</a><a href="/2017/04/20/【从零开始的Weex世界】二：工程梳理与PlayGround调试/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【JVM】ClassLoader.md · Hans Zone</title><meta name="description" content="【JVM】ClassLoader.md - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【JVM】ClassLoader.md</h1><div class="tags"><a href="/tags/JVM/" class="tag-title">#JVM</a></div><div class="post-info">Jan 9, 2017</div><div class="post-content"><a id="more"></a>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>深入理解Java虚拟机</li>
+</ul>
+<h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><p>Java中有三种类加载器：</p>
+<ul>
+<li><p>1.Bootstrap ClassLoader：</p>
+<ul>
+<li><p>启动类加载器</p>
+</li>
+<li><p>JVM的一部分,C++实现</p>
+</li>
+<li><p>负责加载<java_home>\lib目录中的类，并且按文件名识别</java_home></p>
+</li>
+<li><p>开发者不可调用，如果想通过双亲委派给Bootstrap，直接返回null即可</p>
+</li>
+</ul>
+</li>
+<li><p>2.Extension ClassLoader：</p>
+<ul>
+<li><p>扩展类加载器，由ExtClassLoader实现</p>
+</li>
+<li><p>负责加载了<java_home>\lib\ext目录中的类</java_home></p>
+</li>
+</ul>
+</li>
+<li><p>3.AppClassLoader：</p>
+<ul>
+<li><p>应用程序类加载器，由AppClassLoader实现</p>
+</li>
+<li><p>调用ClassLoader.getSystemClassLoader()即可获取，所以一般也称为系统类加载器</p>
+</li>
+<li><p>开发者可以直接使用，如果开发者没有自定义加载器，一般默认使用该类加载器</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="双亲委派模式"><a href="#双亲委派模式" class="headerlink" title="双亲委派模式"></a>双亲委派模式</h2><p>如图所示：</p>
+<p>工作过程：</p>
+<ul>
+<li><p>1.ClassLoader收到类加载，调用父类加载（partent.loadClass()）</p>
+</li>
+<li><p>2.父类加载成功，则自己不加载</p>
+</li>
+<li><p>3.父类加载失败，则自己加载</p>
+</li>
+</ul>
+<p>双亲委派实际上非常简单，很好理解。</p>
+<p>这样设计的一些理由：</p>
+<ul>
+<li><p>1.安全、安全、安全  可以避免如java.lang.String核心类被恶意替换，因为由最顶级的BootStrapClassLoader加载</p>
+</li>
+<li><p>2.保证类的加载逻辑清晰，不会出先同包名的类被同一个ClassLoader加载两次。注：但是可以被两个ClassLoader同时加载，但是他们两个并不是同一个类了。</p>
+</li>
+<li><p>3.一个类是否相等，除了要考虑全限定名之外，还要保证是被同一个ClassLoader加载</p>
+</li>
+</ul>
+<h2 id="破坏双亲委派模型"><a href="#破坏双亲委派模型" class="headerlink" title="破坏双亲委派模型"></a>破坏双亲委派模型</h2><p>双亲委派模型是Java推荐的模型，但他并不是一个强制要求</p>
+<p>通过破坏双亲委派模型，在某些特定场景下会有更好的用途：</p>
+<ul>
+<li><p>使Parent最后加载，达到动态替换某个具体类的版本（通过线程上下文类加载器 ThreadContextClassLoader）</p>
+</li>
+<li><p>修改ClassLoader行为，到达热修复（Android中）</p>
+</li>
+<li><p>….</p>
+</li>
+</ul>
+<p>可以参考下面的文章：</p>
+<p><a href="http://blog.csdn.net/Radic_Feng/article/details/6897898" target="_blank" rel="external">CSDN - Java类加载器（Class Loader）之详解</a></p>
+<p><a href="http://blog.csdn.net/yaerfeng/article/details/51052576" target="_blank" rel="external">CSDN - java classLoader体系结构使用详解</a></p>
+<p>线程类加载器的使用：</p>
+<p><a href="http://blog.leanote.com/post/medusar/Java%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6" target="_blank" rel="external">Java类加载器之线程上下文类加载器(ContextClassLoader)</a></p>
+<p><strong>-Hans</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/01/08/【JVM】类加载简述/" class="prev">PREV</a><a href="/2017/01/10/【Android】Android中的ClassLoader小结/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

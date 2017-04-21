@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【WebView】（二）JavaScript调用Java小结 · Hans Zone</title><meta name="description" content="【WebView】（二）JavaScript调用Java小结 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【WebView】（二）JavaScript调用Java小结</h1><div class="tags"><a href="/tags/WebView/" class="tag-title">#WebView</a></div><div class="post-info">Dec 27, 2016</div><div class="post-content"><h2 id="四种基本通讯方法"><a href="#四种基本通讯方法" class="headerlink" title="四种基本通讯方法"></a>四种基本通讯方法</h2><p>JS调用Java原生方法有四种方式：</p>
+<ul>
+<li><p>JavaInterface</p>
+</li>
+<li><p>WebViewClinent#onShouldOverrideUrlLoading</p>
+</li>
+<li><p>WebViewChromeClient#onConsoleMessage</p>
+</li>
+<li><p>WebViewChormeClient#onJsConfirm</p>
+</li>
+</ul>
+<a id="more"></a>
+<p>第一种是Android WebView提供的一个通过注入JS Object来实现的，相当于网页加载了一个JS文件</p>
+<p>优点：简单粗暴</p>
+<p>缺点：4.1及以下存在安全漏洞 如：通过JS函数反射获取类，来发送信息等，导致恶意扣费。</p>
+<p>其他三种是通过“消息传递”的方式：1.URL携带信息 2.控制面板输出信息 3.弹窗携带信息</p>
+<p>原理就是：客户端从URL\面板\弹窗拿到消息，这个消息是前端和移动端规定好的一个消息协议（自由规定）</p>
+<h2 id="以WebViewClinent-onShouldOverrideUrlLoading为例"><a href="#以WebViewClinent-onShouldOverrideUrlLoading为例" class="headerlink" title="以WebViewClinent#onShouldOverrideUrlLoading为例"></a>以WebViewClinent#onShouldOverrideUrlLoading为例</h2><p>以WebViewClinent#onShouldOverrideUrlLoading为例，其他情况是类似的</p>
+<p>前端代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&lt;body&gt;</div><div class="line"></div><div class="line">      &lt;a href=&quot;test://methodName?params1&amp;params2&amp;params3&quot;&gt;触发JS&lt;/a&gt;</div><div class="line"></div><div class="line"> &lt;/body&gt;</div></pre></td></tr></table></figure>
+<p>Android：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">webView.setWebViewClient(new WebViewClient() &#123;</div><div class="line">    @Override</div><div class="line">    public boolean shouldOverrideUrlLoading(WebView view, String url) &#123;</div><div class="line">        Log.i(TAG, &quot;shouldOverrideUrlLoading: &quot; + url);</div><div class="line">        return super.shouldOverrideUrlLoading(view,url);</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>会输出下面的消息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">test://methodName?params1&amp;params2&amp;params3</div></pre></td></tr></table></figure>
+<p>就可以根据methodName和后面的参数 来具体调用方法</p>
+<h3 id="特殊情况"><a href="#特殊情况" class="headerlink" title="特殊情况"></a>特殊情况</h3><p>不过注意 协议名（test）不要使用下划线等特殊字符，可能会出现特殊情况；</p>
+<p>如协议名为：test_sb，输出的会是这样的（我点击触发的页面是：`<a href="http://10.1.0.63:8080/test/index.html&#39;）：" target="_blank" rel="external">http://10.1.0.63:8080/test/index.html&#39;）：</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">http://10.1.0.63:8080/test/test_sb://methodName?params1&amp;params2&amp;params3</div></pre></td></tr></table></figure>
+<p><strong>-Hans 2016.12.27</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2016/11/05/【View】自定义一个倒数圆环/" class="prev">PREV</a><a href="/2017/01/02/【WebView】（三）第三方链接出现BUG调试/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

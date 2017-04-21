@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【JVM】高级GC算法之分代回收算法 · Hans Zone</title><meta name="description" content="【JVM】高级GC算法之分代回收算法 - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【JVM】高级GC算法之分代回收算法</h1><div class="tags"><a href="/tags/JVM/" class="tag-title">#JVM</a></div><div class="post-info">Jan 5, 2017</div><div class="post-content"><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><p>深入理解Java虚拟机</p>
+</li>
+<li><p><a href="https://segmentfault.com/a/1190000004233812#articleHeader3" target="_blank" rel="external">SegmentFault - [译]GC专家系列1：理解Java垃圾回收</a></p>
+</li>
+<li><p><a href="https://segmentfault.com/a/1190000004674180" target="_blank" rel="external">SegmentFault - GC的三大高级算法</a></p>
+</li>
+<li><p><a href="http://www.wxtlife.com/2016/04/25/java-jvm-gc/?hmsr=toutiao.io" target="_blank" rel="external">Android梦想特工队 - JAVA垃圾回收机制</a> </p>
+</li>
+</ul>
+<a id="more"></a>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>分代回收算法实际上不是一种新的算法，而是根据不同的内存区域（年代划分）采取不同的<strong>GC算法（标记清除、复制、标记压缩）</strong></p>
+<h2 id="JVM中的年代划分"><a href="#JVM中的年代划分" class="headerlink" title="JVM中的年代划分"></a>JVM中的年代划分</h2><p>年代划分主要分为以下三种：</p>
+<ul>
+<li><p>Young   Generation          新生代</p>
+</li>
+<li><p>Old Generation                 老年代</p>
+</li>
+<li><p>Permanent Generation     永久代</p>
+</li>
+</ul>
+<p>一般其中新生代与老年代的区域划分为：2:1</p>
+<h3 id="新生代概述"><a href="#新生代概述" class="headerlink" title="新生代概述"></a>新生代概述</h3><p>内存区域分为：一个Eden区、两个Survivor区</p>
+<p>比例大小为：8:1:1</p>
+<p>流程简述：</p>
+<ul>
+<li><p>所有对象都在Eden区分配</p>
+</li>
+<li><p>当Eden区满时，还存活的对象会被复制到Survivor1区</p>
+</li>
+<li><p>当Survivor1区满时，还存活的对象会被复制到Survivor2区；（此时Survivor1为空）</p>
+</li>
+<li><p>当Survivor2区满时，还存活的对象会被复制到Survivor1区；（此时Survivor2为空）</p>
+</li>
+<li><p>经过数次在两个Survivor区移动，还存活的对象会被移动到老年代Old Generation</p>
+</li>
+</ul>
+<h3 id="老年代概述"><a href="#老年代概述" class="headerlink" title="老年代概述"></a>老年代概述</h3><ul>
+<li><p>存活在新生代中但未变为不可达的对象会被复制到老年代</p>
+</li>
+<li><p>一般来说老年代的内存空间比新生代大，所以在老年代GC发生的频率较新生代低一些</p>
+</li>
+</ul>
+<h3 id="永久代概述"><a href="#永久代概述" class="headerlink" title="永久代概述"></a>永久代概述</h3><ul>
+<li><p>Permanent Generation称为方法区，其中存储着类和接口的元信息等等</p>
+</li>
+<li><p>这一区域并不是为老年代中存活下来的对象所定义的持久区</p>
+</li>
+</ul>
+<h2 id="分代内存分配"><a href="#分代内存分配" class="headerlink" title="分代内存分配"></a>分代内存分配</h2><ul>
+<li><p>新生代：存放所有的临时变量和new出来的对象</p>
+</li>
+<li><p>老年代：存放来自新生代存活下来的对象，或者存放当新生代已经满时创建出来的对象（直接放入）</p>
+</li>
+<li><p>永久代：存放的是类、接口、常量、方法等等元信息（不存放来自老年代的对象）</p>
+</li>
+</ul>
+<p><img src="http://i1.piimg.com/567571/dae8b96c6c08c2d2.png" alt="内存分配图"></p>
+<h2 id="分代回收算法"><a href="#分代回收算法" class="headerlink" title="分代回收算法"></a>分代回收算法</h2><p>各代回收：</p>
+<ul>
+<li><p>新生代：当对象从新生代移除时，我们称之为”minor GC”</p>
+</li>
+<li><p>老年代：当对象从老年代被移除时，我们称之为”major GC”(或者full GC)</p>
+</li>
+<li><p>永久代：永久代回收也是“major GC”</p>
+</li>
+</ul>
+<p>GC类型：</p>
+<ul>
+<li><p>Minor GC：</p>
+<ul>
+<li><p>指发生在新生代的垃圾收集动作，因为Java对象大多都具备朝生夕灭的特性，所以Minor GC非常频繁，一般回收速度也比较快。</p>
+</li>
+<li><p>遍历新生代中所有的对象，通过复制回收算法进行GC（复制到的目标空间可以是新生代中survivor区或老年代空间）</p>
+</li>
+<li><p>如果新生代对象被老年代引用怎么办呢？在老年代中设计了”索引表(card table)”，是一个512字节的数据块。不管何时老年代需要持有新生代对象的引用时，都会记录到此表中。当新生代中需要执行GC时，通过搜索此表决定新生代的对象是否为GC的目标对象，从而降低遍历所有老年代对象进行检查的代价。该索引表使用写栅栏(write barrier)进行管理。wite barrier是一个允许高性能执行minor GC的设备。尽管它会引入一定的开销，却能带来总体GC时间的大幅降低。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://p1.bqimg.com/567571/7cd577ba822d9572.png" alt=""></p>
+<ul>
+<li>Major GC:指发生在老年代的GC，出现了Major GC，经常会伴随至少一次的Minor GC（但非绝对的，在Parallel Scavenge收集器的收集策略里就有直接进行Major GC的策略选择过程）。Major GC的速度一般会比Minor GC慢10倍以上。</li>
+</ul>
+<p><strong>-Hans</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/01/05/【JVM】初级GC算法/" class="prev">PREV</a><a href="/2017/01/05/【JVM】内存分配与回收策略/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

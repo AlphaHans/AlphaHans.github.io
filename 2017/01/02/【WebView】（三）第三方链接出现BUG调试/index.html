@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【WebView】（三）第三方链接出现BUG调试.md · Hans Zone</title><meta name="description" content="【WebView】（三）第三方链接出现BUG调试.md - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【WebView】（三）第三方链接出现BUG调试.md</h1><div class="tags"><a href="/tags/WebView/" class="tag-title">#WebView</a></div><div class="post-info">Jan 2, 2017</div><div class="post-content"><h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>项目中嵌套了WebView进行文章展示，难免会有外链，但是第三方的外链可能在本地的WebView会有水图不服的现象，按我们Android开发者可以通过一些方法进行WebView的调试</p>
+<a id="more"></a>
+<h2 id="必要工具"><a href="#必要工具" class="headerlink" title="必要工具"></a>必要工具</h2><ul>
+<li><p>Android 4.4以上手机 （4.4以上内核为chromium）</p>
+</li>
+<li><p>PC端Chorme浏览器</p>
+</li>
+</ul>
+<p>注意不是所有Android4.4以上都可以，手里有一台三星并不行，最后通过Nexus模拟器来调试</p>
+<h2 id="调试步骤"><a href="#调试步骤" class="headerlink" title="调试步骤"></a>调试步骤</h2><ul>
+<li><p>PC Chrome打开网页：chrome://inpect</p>
+</li>
+<li><p>选择Device 如图所示可以看到已经连接的设备</p>
+</li>
+</ul>
+<p><img src="http://p1.bpimg.com/567571/2b41ddc138e8833d.png" alt=""></p>
+<ul>
+<li>在Android手机通过WebView打开怀疑有问题的第三方网站页面，点击inspect</li>
+</ul>
+<p><img src="http://i1.piimg.com/567571/1f06085ac0547ece.png" alt=""></p>
+<ul>
+<li>在Console面板中查看错误信息</li>
+</ul>
+<p><img src="http://i1.piimg.com/567571/abe80d7ae2a80c3c.png" alt=""><br>红字是错误信息，左侧是错误所在的JavaScript文件</p>
+<ul>
+<li>找到错误</li>
+</ul>
+<p>ctrl+f呼出搜索面板，输入关键词找到两处错误：</p>
+<p><img src="http://i1.piimg.com/567571/1ab3bc3f78036a55.png" alt=""><br><img src="http://i1.piimg.com/567571/358268f815471acc.png" alt=""></p>
+<ul>
+<li>定性错误</li>
+</ul>
+<p>发现错误是localStorage出现，如果没有前端编程经验的话可能要找前端伙伴帮忙解决了。</p>
+<p>localStorage是什么可以参考下面的文章：</p>
+<p><a href="http://blog.csdn.net/a345017062/article/details/8703221" target="_blank" rel="external">CSDN - Android WebView缓存分析</a><br>这样就可以找到思路去解决问题了，而不用一头脑在找问题</p>
+<h2 id="知识补充"><a href="#知识补充" class="headerlink" title="知识补充"></a>知识补充</h2><h3 id="WebView相关的缓存"><a href="#WebView相关的缓存" class="headerlink" title="WebView相关的缓存"></a>WebView相关的缓存</h3><ul>
+<li><p>AppCache：html、css、js存储</p>
+</li>
+<li><p>DOM Storage：存储kv数据非常不错</p>
+<ul>
+<li><p>Session Storage：会话级别，关了页面就清除</p>
+</li>
+<li><p>Local Storage：永久保存</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><a href="http://blog.csdn.net/a345017062/article/details/8703221" target="_blank" rel="external">CSDN - Android WebView缓存分析</a></p>
+<p><a href="http://www.jianshu.com/p/95d4d73be3d1" target="_blank" rel="external">简书 - Android WebView性能优化</a></p>
+<h3 id="浏览器内核"><a href="#浏览器内核" class="headerlink" title="浏览器内核"></a>浏览器内核</h3><p><a href="http://web.jobbole.com/84826/" target="_blank" rel="external">JOB BOLE - 主流浏览器内核</a></p>
+<ul>
+<li><p>WebKit</p>
+<ul>
+<li><p>fork自KHTML</p>
+</li>
+<li><p>Apple Safari是鼻祖</p>
+</li>
+<li><p>2008 年Google发布 Chrome 浏览器，采用的 chromium 内核便fork 自 Webkit。</p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Chromium/Bink</p>
+<ul>
+<li><p>2008 年Google发布 Chrome 浏览器，采用的 chromium 内核便fork 自 Webkit。</p>
+</li>
+<li><p>精简WebKit，开发Javascript V8引擎，极大提高JavaScript执行速度</p>
+</li>
+<li><p>国产几乎所有浏览器都是在Chromuim再次包装而来</p>
+</li>
+<li><p>2013年Google宣布与Apple分道扬镳，并且Apple发布的WebKit2与Chromium的沙箱机制存在冲突，而且Chromium与WebKit2的兼容有很大困难</p>
+</li>
+<li><p>此后Google开始研发Blink（WebKit的另外一个分支）</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>-Hans 2017.1.2</strong></p>
+</div></article></div></main><footer><div class="paginator"><a href="/2016/12/27/【WebView】（二）JavaScript调用Java方法小结/" class="prev">PREV</a><a href="/2017/01/05/【JVM】初级GC算法/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

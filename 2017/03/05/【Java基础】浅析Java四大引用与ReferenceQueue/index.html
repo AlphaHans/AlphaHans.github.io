@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【Java基础】浅析Java四大引用与ReferenceQueue.md · Hans Zone</title><meta name="description" content="【Java基础】浅析Java四大引用与ReferenceQueue.md - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【Java基础】浅析Java四大引用与ReferenceQueue.md</h1><div class="tags"><a href="/tags/ReferenceQueue/" class="tag-title">#ReferenceQueue</a></div><div class="post-info">Mar 5, 2017</div><div class="post-content"><h2 id="Java四大引用"><a href="#Java四大引用" class="headerlink" title="Java四大引用"></a>Java四大引用</h2><ul>
+<li><p>强引用：对象绝对不会被回收，直到程序退出为止（包含OOM）</p>
+</li>
+<li><p>软引用：当即将OOM时候，JVM会回收软引用对象。若空间依旧不够，抛出OOM</p>
+</li>
+<li><p>弱引用：触发GC的时候，弱引用极有可能被回收。（由于GC线程优先级低，所以不一定能够回收所有的弱引用对象）</p>
+</li>
+<li><p>虚引用：又称为幽灵引用。目前暂时不知道有何用处</p>
+</li>
+</ul>
+<a id="more"></a>
+<h2 id="ReferenceQueue"><a href="#ReferenceQueue" class="headerlink" title="ReferenceQueue"></a>ReferenceQueue</h2><ul>
+<li>其作用是：</li>
+</ul>
+<blockquote>
+<p>Reference queues, to which registered reference objects are appended by the garbage collector after the appropriate reachability changes are detected.<br>引用队列，用于检测在发生垃圾回收之后对象的可达性变更之后，讲对象放入该队列。（就是说明该对象被回收之后，该队列就会有该对象了）</p>
+</blockquote>
+<ul>
+<li><p>通过查看<code>ReferenceQueue</code>的源代码发现实现很简单，又以下特点：</p>
+<ul>
+<li><p>数据结构为单项链表，节点为<code>Reference</code>（所有引用的基类）</p>
+</li>
+<li><p>内部有一个<code>Lock</code>类（就是一个简单的<code>Object</code>类，没有什么特别），实现并发同步</p>
+</li>
+<li><p>当队列为空的时候，<code>remove</code>方法返回的是<code>null</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="例子描述"><a href="#例子描述" class="headerlink" title="例子描述"></a>例子描述</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static void main(String args[]) throws InterruptedException &#123;</div><div class="line">    Object object = new Object();</div><div class="line">    ReferenceQueue&lt;Object&gt; queue = new ReferenceQueue&lt;&gt;();</div><div class="line">    WeakReference&lt;Object&gt; weakReference = new WeakReference&lt;Object&gt;(object, queue);//创建弱引用，并且指定队列queuee</div><div class="line">    //object = null;</div><div class="line">    Thread.sleep(500);//暂停500ms</div><div class="line">    //触发GC</div><div class="line">    System.gc();</div><div class="line">    System.runFinalization();</div><div class="line"></div><div class="line">    Reference rObj = null;</div><div class="line">    while ((rObj = queue.poll()) != null) &#123;</div><div class="line">        System.out.println(rObj.get());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>过程：</p>
+<ul>
+<li><p>创建一个<code>ReferenceQueue</code></p>
+</li>
+<li><p>创建一个对象</p>
+</li>
+<li><p>创建弱引用</p>
+</li>
+<li><p>触发GC</p>
+</li>
+<li><p>遍历<code>ReferenceQueue</code>查看是否有对象</p>
+</li>
+</ul>
+<p>结果：</p>
+<ul>
+<li>发现没有任何输出</li>
+</ul>
+<p>结论：</p>
+<ul>
+<li><p>符合我们的预期，因为在结束之前，<code>Object</code>存在引用，所以并不会被GC回收（<code>ReferenceQueue</code>为空）</p>
+</li>
+<li><p>那么要如何有输出呢？只需要将我们注释的<code>object = null</code>添加到代码，就会发现有输出了（<code>ReferenceQueue</code>不为空）</p>
+</li>
+<li><p>为什么这样就会有输出？上面讲解的时候说了，当一个对象被GC回收之后，会被自动添加到这个队列中去</p>
+</li>
+</ul>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/03/03/【LeakCanary】展示-AbstractAnalysisResultService与DisplayLeakService/" class="prev">PREV</a><a href="/2017/03/05/【LeakCanary】核心-RefWatcher/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

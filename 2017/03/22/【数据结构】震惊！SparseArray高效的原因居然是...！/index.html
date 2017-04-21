@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>【数据结构】震惊！SparseArray高效的原因居然是这样！ · Hans Zone</title><meta name="description" content="【数据结构】震惊！SparseArray高效的原因居然是这样！ - Hans"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://www.hanszone.tech/atom.xml" title="Hans Zone"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">【数据结构】震惊！SparseArray高效的原因居然是这样！</h1><div class="tags"><a href="/tags/SparseArray/" class="tag-title">#SparseArray</a></div><div class="post-info">Mar 22, 2017</div><div class="post-content"><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><ul>
+<li><p>SparseArray（稀疏数组） 以int为键，Object为值进行一一映射</p>
+</li>
+<li><p>对比HashMap，在内存方面SparseArray存在更大的优势</p>
+<ul>
+<li><p>避免了key的自动装箱</p>
+</li>
+<li><p>其数据结构不依赖于额外的Entry对象来存储</p>
+</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<h3 id="内部实现"><a href="#内部实现" class="headerlink" title="内部实现"></a>内部实现</h3><ul>
+<li><p>该容器使用数组作为数据结构来保持一一映射</p>
+</li>
+<li><p>使用<strong>二分查找</strong>对键进行定位搜索（搜索时间为O(logn)，HashMap是O(1)）</p>
+</li>
+<li><p>这样会带来缺点：</p>
+<ul>
+<li><p>当容器内在大量元素的时候，使用二分查找会带来很差的性能</p>
+</li>
+<li><p>在存在大量元素以及涉及大量增删的时候，由于会引起数组的频繁变化；所以SparseArray的性能不一定是最佳的</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><ul>
+<li><p>为了避免上述的缺点，提高性能；在删除的时候进行了优化：</p>
+<ul>
+<li><p>删除时，不直接压缩数组；而是对改为进行标记为DELETED</p>
+</li>
+<li><p>该节点可以被后续相同的key使用，或者在后续回收中，统一被回收</p>
+</li>
+<li><p>统一回收将在以下情况发生：</p>
+</li>
+<li><p>数组扩容</p>
+</li>
+<li><p>大小或值被恢复时</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="成员变量与构造方法"><a href="#成员变量与构造方法" class="headerlink" title="成员变量与构造方法"></a>成员变量与构造方法</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class SparseArray&lt;E&gt; implements Cloneable &#123;</div><div class="line">    private static final Object DELETED = new Object();</div><div class="line">    private boolean mGarbage = false;</div><div class="line"></div><div class="line">    private int[] mKeys;</div><div class="line">    private Object[] mValues;</div><div class="line">    private int mSize;</div><div class="line"></div><div class="line"></div><div class="line">    public SparseArray() &#123;</div><div class="line">        this(10);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public SparseArray(int initialCapacity) &#123;</div><div class="line">        if (initialCapacity == 0) &#123;</div><div class="line">            mKeys = EmptyArray.INT;</div><div class="line">            mValues = EmptyArray.OBJECT;</div><div class="line">        &#125; else &#123;</div><div class="line">            mValues = ArrayUtils.newUnpaddedObjectArray(initialCapacity);</div><div class="line">            mKeys = new int[mValues.length];</div><div class="line">        &#125;</div><div class="line">        mSize = 0;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>创建了两个数组</p>
+<ul>
+<li>一个用于存储键、一个用于存储值</li>
+</ul>
+</li>
+<li><p>DELETED的标记对象Object</p>
+</li>
+<li><p>mGarbage的boolean判断（暂不知道干嘛，后续分析）</p>
+</li>
+</ul>
+<h2 id="get"><a href="#get" class="headerlink" title="get"></a>get</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public E get(int key) &#123;</div><div class="line">    return get(key, null);</div><div class="line">&#125;</div><div class="line"></div><div class="line">@SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">public E get(int key, E valueIfKeyNotFound) &#123;</div><div class="line">    //二分查找</div><div class="line">    int i = ContainerHelpers.binarySearch(mKeys, mSize, key);</div><div class="line"></div><div class="line">    if (i &lt; 0 || mValues[i] == DELETED) &#123;</div><div class="line">        return valueIfKeyNotFound;</div><div class="line">    &#125; else &#123;</div><div class="line">        return (E) mValues[i];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>在<code>mKeys</code>对<code>key</code>进行二分查找，找到键的位置</p>
+</li>
+<li><p>如果pos小于零或者value已经从<code>mValue</code>数组删除，则返回自己指定的<code>valueIfKeyNotFound</code></p>
+</li>
+<li><p>找到位置返回值</p>
+</li>
+</ul>
+<p>这里需要特别注意pos小于零的情况，是什么意思？下面先分析一下<code>ContainerHelpers.binarySearch</code>的二分查找法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">binarySearch二分查找法</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">// This is Arrays.binarySearch(), but doesn&apos;t do any argument validation.</div><div class="line">static int binarySearch(int[] array, int size, int value) &#123;</div><div class="line">    int lo = 0;</div><div class="line">    int hi = size - 1;</div><div class="line"></div><div class="line">    while (lo &lt;= hi) &#123;</div><div class="line">        final int mid = (lo + hi) &gt;&gt;&gt; 1;//&gt;&gt;&gt;表示无符号位的右移，&gt;&gt;表示右移</div><div class="line">        final int midVal = array[mid];</div><div class="line"></div><div class="line">        if (midVal &lt; value) &#123;</div><div class="line">            lo = mid + 1;</div><div class="line">        &#125; else if (midVal &gt; value) &#123;</div><div class="line">            hi = mid - 1;</div><div class="line">        &#125; else &#123;</div><div class="line">            return mid;  // value found</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return ~lo;  // value not present //取反</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>该二分查找算法是SparseArray算法核心之一</strong></p>
+<p>注意一下<code>lo</code>的有两个意义：</p>
+<ul>
+<li><p>当查找的key存在时候，返回的是key在数组位置的index</p>
+</li>
+<li><p>当查找的key不存在的时候，返回的index是该key应该存在的位置</p>
+</li>
+</ul>
+<p>举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class BinarySearchTest &#123;</div><div class="line"></div><div class="line">    public static void main(String args[]) &#123;</div><div class="line">        int[] array = &#123;2, 5, 8, 0, 0&#125;;</div><div class="line">        System.out.println(&quot;返回值 = &quot; + binarySearch(array, 3, 1) + &quot; 重新取反值:&quot; + ~binarySearch(array, 3, 1));</div><div class="line">        System.out.println(&quot;返回值 = &quot; + binarySearch(array, 3, 4) + &quot; 重新取反值:&quot; + ~binarySearch(array, 3, 4));</div><div class="line">        System.out.println(&quot;返回值 = &quot; + binarySearch(array, 3, 9) + &quot; 重新取反值:&quot; + ~binarySearch(array, 3, 9));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // This is Arrays.binarySearch(), but doesn&apos;t do any argument validation.</div><div class="line">    static int binarySearch(int[] array, int size, int value) &#123;</div><div class="line">        int lo = 0;</div><div class="line">        int hi = size - 1;</div><div class="line"></div><div class="line">        while (lo &lt;= hi) &#123;</div><div class="line">            final int mid = (lo + hi) &gt;&gt;&gt; 1;</div><div class="line">            final int midVal = array[mid];</div><div class="line"></div><div class="line">            if (midVal &lt; value) &#123;</div><div class="line">                lo = mid + 1;</div><div class="line">            &#125; else if (midVal &gt; value) &#123;</div><div class="line">                hi = mid - 1;</div><div class="line">            &#125; else &#123;</div><div class="line">                return mid;  // value found</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return ~lo;  // value not present</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上述代码查找了三个key的位置，然后重新<code>~</code>后输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">返回值 = -1 重新取反值:0</div><div class="line"></div><div class="line">返回值 = -2 重新取反值:1</div><div class="line"></div><div class="line">返回值 = -4 重新取反值:3</div></pre></td></tr></table></figure>
+<p>可以总结出规律：</p>
+<ul>
+<li><p>当key不存在与array时候，返回的一定是负数</p>
+</li>
+<li><p>返回之后再次取反的值，就是该key应该处于的array的位置(比如说我们查找<code>key = 1</code>的位置，此时数组是<code>{2，5，8}</code>，而应该处于2之前，所以<code>key = 1</code>的<code>index应该是0</code>)</p>
+</li>
+</ul>
+<p>所以至此就可以回答上面留下的疑问，为何要判断<code>pos&lt;0</code>的情况：</p>
+<p><strong> <code>pos &lt; 0</code> 表明当前<code>array</code>中不存在这个key </strong></p>
+<h2 id="delete与remove"><a href="#delete与remove" class="headerlink" title="delete与remove"></a>delete与remove</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public void delete(int key) &#123;</div><div class="line">    int i = ContainerHelpers.binarySearch(mKeys, mSize, key);</div><div class="line"></div><div class="line">    if (i &gt;= 0) &#123;</div><div class="line">        if (mValues[i] != DELETED) &#123;</div><div class="line">            mValues[i] = DELETED;</div><div class="line">            mGarbage = true;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">public E removeReturnOld(int key) &#123;</div><div class="line">    int i = ContainerHelpers.binarySearch(mKeys, mSize, key);</div><div class="line"></div><div class="line">    if (i &gt;= 0) &#123;</div><div class="line">        if (mValues[i] != DELETED) &#123;</div><div class="line">            final E old = (E) mValues[i];</div><div class="line">            mValues[i] = DELETED;</div><div class="line">            mGarbage = true;</div><div class="line">            return old;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">public void remove(int key) &#123;</div><div class="line">    delete(key);</div><div class="line">&#125;</div><div class="line"></div><div class="line">public void removeAt(int index) &#123;</div><div class="line">    if (mValues[index] != DELETED) &#123;</div><div class="line">        mValues[index] = DELETED;</div><div class="line">        mGarbage = true;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">public void removeAtRange(int index, int size) &#123;</div><div class="line">    final int end = Math.min(mSize, index + size);</div><div class="line">    for (int i = index; i &lt; end; i++) &#123;</div><div class="line">        removeAt(i);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>delete和remove实际上是调用相同的方法</p>
+</li>
+<li><p>删除过程是使用二分查找法，先找到key的位置，然后将对应的values中的值标记为<code>DELETE</code></p>
+</li>
+<li><p>delete不涉及删除键，只涉及讲values的值置空</p>
+</li>
+<li><p>特别注意这个变量被赋值了<code>mGarbage = true</code>（目前暂不明用途，继续往后分析）</p>
+</li>
+</ul>
+<h2 id="put"><a href="#put" class="headerlink" title="put"></a>put</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">public void put(int key, E value) &#123;</div><div class="line">    int i = ContainerHelpers.binarySearch(mKeys, mSize, key);</div><div class="line">    if (i &gt;= 0) &#123;//已经存在该键-值，直接替换值</div><div class="line">        mValues[i] = value;</div><div class="line">    &#125; else &#123;//查找失败</div><div class="line">        i = ~i;//再次取反，找到该键应该归属的位置</div><div class="line">        if (i &lt; mSize &amp;&amp; mValues[i] == DELETED) &#123;//如果值标记是被删除的话 则直接将键换掉传入的key，值为传入的值（这个下面会解释）</div><div class="line">            mKeys[i] = key;</div><div class="line">            mValues[i] = value;</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        if (mGarbage &amp;&amp; mSize &gt;= mKeys.length) &#123;//如果数组被回收过 则需要调用gc，为下面的数组扩容做准备</div><div class="line">            gc();</div><div class="line">            // Search again because indices may have changed.</div><div class="line">            i = ~ContainerHelpers.binarySearch(mKeys, mSize, key);//gc执行完之后，重新进行二分查找正确的位置</div><div class="line">        &#125;</div><div class="line">        mKeys = GrowingArrayUtils.insert(mKeys, mSize, i, key);</div><div class="line">        mValues = GrowingArrayUtils.insert(mValues, mSize, i, value);</div><div class="line">        mSize++;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>搞清楚<code>mSize</code>的变化，<code>remove</code>和<code>delete</code>的操作不会对<code>mSize</code>进行影响，只是进行<code>mValues</code>数组对应<code>index</code>置为<code>DELTED</code></p>
+</li>
+<li><p><code>if(i &lt; mSize &amp;&amp; mValues[i] == DELETED)</code>在判断什么？</p>
+<ul>
+<li><p>还记得我们上面二分查找举得例子么，数组是<code>{2,5,8}</code></p>
+</li>
+<li><p>现在执行<code>sp.remove(2)</code>然后再进行<code>sp.put(1,value)</code>，就会进入到该判断了</p>
+</li>
+<li><p>因为<code>remove</code>方法只影响<code>mValues</code>，当它为<code>DELETED</code>时候，说明对应的<code>key</code>也无意义了</p>
+</li>
+<li><p>因此该if内执行的是直接对key-value进行替换</p>
+</li>
+</ul>
+</li>
+<li><p><code>gc()</code>可以看出是数组回收的过程，这里<code>mGarbage</code>就用上了。 （该方法后续分析）</p>
+</li>
+<li><p><code>GrowingArrayUtils.inser()</code>从类名可以看出，当空间不够的时候，数组会自增后插入（因为AS没有该源码，就不分析了）</p>
+</li>
+</ul>
+<h2 id="gc"><a href="#gc" class="headerlink" title="gc"></a>gc</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">private void gc() &#123;</div><div class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc start with &quot; + mSize);</div><div class="line">    int n = mSize;</div><div class="line">    int o = 0;</div><div class="line">    int[] keys = mKeys;</div><div class="line">    Object[] values = mValues;</div><div class="line">    for (int i = 0; i &lt; n; i++) &#123;//数组往前压缩，将原本的DELETED对应的key-value都删掉</div><div class="line">        Object val = values[i];</div><div class="line">        if (val != DELETED) &#123;</div><div class="line">            if (i != o) &#123;</div><div class="line">                keys[o] = keys[i];</div><div class="line">                values[o] = val;</div><div class="line">                values[i] = null;</div><div class="line">            &#125;</div><div class="line">            o++;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    mGarbage = false;</div><div class="line">    mSize = o;</div><div class="line">    // Log.e(&quot;SparseArray&quot;, &quot;gc end with &quot; + mSize);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p><code>gc()</code>很简单，就是讲数组往前部压缩</p>
+</li>
+<li><p>举个例子：</p>
+</li>
+<li><p><code>mKeys = {2,4,5,6} mValues = {Object1,DELETED,Object2,DELETED}</code></p>
+</li>
+<li><p>调用<code>gc()</code>之后：<code>mKeys = {2,5} mValues = {Object1,Object2}</code></p>
+</li>
+<li><p>起到紧凑数组的作用</p>
+</li>
+</ul>
+<h2 id="keyAt与indexOfkey"><a href="#keyAt与indexOfkey" class="headerlink" title="keyAt与indexOfkey"></a>keyAt与indexOfkey</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public int keyAt(int index) &#123;</div><div class="line">    if (mGarbage) &#123;</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    return mKeys[index];</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">public int indexOfKey(int key) &#123;</div><div class="line">    if (mGarbage) &#123;</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    return ContainerHelpers.binarySearch(mKeys, mSize, key);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>这两个方法容易混杂，所以通过源码来讲比较简单</p>
+</li>
+<li><p><code>keyAt</code>直接通过<code>index</code>指明获取<code>mKeys</code>数组中第几位的<code>key</code>（用于数组遍历）</p>
+<ul>
+<li><p>该方法可能存在不可靠性.因为有可能获取到的的<code>key</code>是默认数组默认初始化的<code>0</code>。</p>
+</li>
+<li><p>为了避免上面的情况，需要结合<code>size()</code>方法来遍历</p>
+</li>
+</ul>
+</li>
+<li><p><code>indexOfKey</code>通过<code>key</code>来查明该<code>key</code>在<code>mKeys</code>所在的<code>index</code></p>
+</li>
+</ul>
+<h2 id="valueAt与indexOfValue"><a href="#valueAt与indexOfValue" class="headerlink" title="valueAt与indexOfValue"></a>valueAt与indexOfValue</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">@SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">public E valueAt(int index) &#123;</div><div class="line">    if (mGarbage) &#123;</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    return (E) mValues[index];</div><div class="line">&#125;</div><div class="line"></div><div class="line">public int indexOfValue(E value) &#123;</div><div class="line">    if (mGarbage) &#123;</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    for (int i = 0; i &lt; mSize; i++)</div><div class="line">        if (mValues[i] == value)</div><div class="line">            return i;</div><div class="line"></div><div class="line">    return -1;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>大致和上面的<code>keyAt与indexOfKey</code>相同</p>
+</li>
+<li><p>使用<code>keyAt</code>和<code>valueAt</code>可以实现遍历</p>
+</li>
+</ul>
+<h2 id="setValueAt"><a href="#setValueAt" class="headerlink" title="setValueAt"></a>setValueAt</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public void setValueAt(int index, E value) &#123;</div><div class="line">    if (mGarbage) &#123;</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    mValues[index] = value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>该方法使用需要调用者确定当前数据内容</p>
+</li>
+<li><p>举个例子：</p>
+<ul>
+<li><p>已有<code>mKeys = {2,5,8} mValues = {o1,o2,o3}</code>此时如果调用<code>setValueAt(0,o4)</code></p>
+</li>
+<li><p>那么就会变成<code>mKeys = {2,5,8} mValues = {o4,o2,o3}</code></p>
+</li>
+<li><p>如果调用<code>setValueAt(3,o4)</code>那么内存情况是<code>mKeys = {2,5,8,0} mValues = {o1,o2,o3,o4}</code>而可获取的情况是<code>mKeys = {2,5,8} mValues = {o1,o2,o3}</code></p>
+</li>
+<li><p>所以该方法需要调用者熟悉当前数据内容</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="append"><a href="#append" class="headerlink" title="append"></a>append</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public void append(int key, E value) &#123;</div><div class="line">    //这里是一个代码的容错机制，避免开发者以为自己的现在key最大</div><div class="line">    if (mSize != 0 &amp;&amp; key &lt;= mKeys[mSize - 1]) &#123;//key不是大于数组所有的key的时候</div><div class="line">        put(key, value);//重新执行put</div><div class="line">        return;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (mGarbage &amp;&amp; mSize &gt;= mKeys.length) &#123;//扩容准备</div><div class="line">        gc();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    mKeys = GrowingArrayUtils.append(mKeys, mSize, key);//直接插入（理论上是直接插入到末尾）</div><div class="line">    mValues = GrowingArrayUtils.append(mValues, mSize, value);</div><div class="line">    mSize++;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>该方法，针对于插入的<code>key</code>大于所有已存在的<code>key</code>的优化插入</p>
+</li>
+<li><p>第一个<code>if</code>判断，该<code>key</code>是否真的为最大。若不是，重新执行<code>put</code>方法</p>
+</li>
+<li><p>如果该<code>key</code>的确最大，那么直接<code>GrowingArrayUtils.append()</code>。理论上这个是直接拼接到数组有效位末尾，因为该<code>key</code>最大没必要二分查找了</p>
+</li>
+<li><p><strong>一个不是很成熟的结论：理论上使用<code>append</code>可能比<code>put</code>会有更高的性能，因为在<code>key</code>最大情况下可以免去二分查找的开销</strong></p>
+</li>
+</ul>
+<h2 id="与HashMap的对比"><a href="#与HashMap的对比" class="headerlink" title="与HashMap的对比"></a>与HashMap的对比</h2><ul>
+<li><p>查找速度</p>
+<ul>
+<li><p><code>HashMap</code>基于<code>hash</code>查找，时间复杂度是O(1)</p>
+</li>
+<li><p><code>SparseArray</code>基于二分查找，时间复杂度是O(logn)</p>
+</li>
+<li><p>数据量大的时候，<code>SparseArray</code>性能会急剧恶化；数据量小，两者应该区别不大（- - 不是很严谨，但是从时间复杂度来说是体现很明显的）</p>
+</li>
+</ul>
+</li>
+<li><p>插入速度</p>
+<ul>
+<li><p>对于大量数据来说，由于<code>SparseArray</code>二分查找会带来较大的性能开销，而且可能由于数组长度限制，会导致<code>gc()</code>的压缩调用，以及导致大数组的复制</p>
+</li>
+<li><p>插入速度还是<code>HashMap</code>略胜一筹</p>
+</li>
+</ul>
+</li>
+<li><p>删除速度</p>
+<ul>
+<li>还是由于<code>SparseArray</code>二分查找（数据量较大情况），<code>HashMap</code>略胜一筹</li>
+</ul>
+</li>
+<li><p>内存开销</p>
+<ul>
+<li><p><code>HashMap</code>由于自动装箱以及<code>HashEntry</code>额外占用内存，所以<code>HashMap</code>内存占用较大</p>
+</li>
+<li><p><code>SparseArray</code>基于数组，不需要自动装箱，内存占用较小</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>一句话概括：<strong>SparseArray并不是完全优于HashMap，要根据实际情况具体分析</strong></p>
+<h2 id="感悟"><a href="#感悟" class="headerlink" title="感悟"></a>感悟</h2><p>该数据结构实际上很早就用过，一直没有来探索其中的奥秘。 在前几天今日头条面试官问我细节的时候，才发现自己才疏学浅。特此进行一波总结。</p>
+<p>实际上数据结构真的是一门博大精深的学科…这些编写代码的人总能想到一些高潮的方式来优化性能；这些思想是很值得我们学习的！</p>
+<p>从中吸取思想，运用到我们自己的实战经验中去。</p>
+<p>个人认为已经将<code>SparseArray</code>完全解剖完毕，若有错漏请批评指正。</p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/03/05/【LeakCanary】核心-RefWatcher/" class="prev">PREV</a><a href="/2017/04/19/【从零开始的Weex世界】一：Hello,Weex!/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://www.hanszone.tech">Hans</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>

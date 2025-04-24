@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自适应滑动表格</title>
+    <style>
+        /* 新增：容器占满屏幕宽度，固定高度400px */
+        .container {
+            width: 100vw;
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #ccc;
+            margin: 0 auto; /* 水平居中 */
+        }
+        
+        /* 新增：动态计算表格尺寸 */
+        .table-wrapper {
+            position: absolute;
+            width: 1000px;
+            height: 1000px;
+            transition: transform 0.2s ease-out;
+            will-change: transform;
+        }
+
+        /* 优化：提升移动端触控体验 */
+        table {
+            width: 1000px;
+            height: 1000px;
+            border-collapse: collapse;
+            touch-action: none; /* 禁用浏览器默认触控行为 */
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;  /* 增大触控区域 */
+            text-align: center;
+            background: #f8f8f8;
+            min-width: 80px; /* 防止内容挤压 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="table-wrapper">
+            <table>
+                <!-- 生成10x10表格 -->
+                <script>
+                    document.write(Array(10).fill().map((_,i) => 
+                        `<tr>${
+                            Array(10).fill().map((_,j) => 
+                                `<td>${i+1}-${j+1}</td>`
+                            ).join('')
+                        }</tr>`
+                    ).join(''))
+                </script>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const container = document.querySelector('.container');
+            const wrapper = document.querySelector('.table-wrapper');
+            let startX = 0, startY = 0;
+            let translateX = 0, translateY = 0;
+            let isDragging = false;
+
+            // 动态计算边界限制
+            const getBoundary = () => ({
+                maxX: 0,
+                minX: -(1000 - container.clientWidth),
+                maxY: 0,
+                minY: -(1000 - container.clientHeight)
+            });
+
+            wrapper.addEventListener('touchstart', e => {
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                isDragging = true;
+                wrapper.style.transition = 'none';
+            }, { passive: false });
+
+            wrapper.addEventListener('touchmove', e => {
+                if (!isDragging) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                const boundary = getBoundary();
+
+                // 应用动态边界
+                let newX = translateX + deltaX;
+                let newY = translateY + deltaY;
+                newX = Math.min(boundary.maxX, Math.max(newX, boundary.minX));
+                newY = Math.min(boundary.maxY, Math.max(newY, boundary.minY));
+
+                wrapper.style.transform = `translate(${newX}px, ${newY}px)`;
+                
+                startX = touch.clientX;
+                startY = touch.clientY;
+                translateX = newX;
+                translateY = newY;
+            }, { passive: false });
+
+            wrapper.addEventListener('touchend', () => {
+                isDragging = false;
+                wrapper.style.transition = 'transform 0.2s ease-out';
+            });
+
+            // 新增：窗口尺寸变化监听
+            window.addEventListener('resize', () => {
+                const boundary = getBoundary();
+                translateX = Math.min(boundary.maxX, Math.max(translateX, boundary.minX));
+                translateY = Math.min(boundary.maxY, Math.max(translateY, boundary.minY));
+                wrapper.style.transform = `translate(${translateX}px, ${translateY}px)`;
+            });
+        })();
+    </script>
+</body>
+</html>

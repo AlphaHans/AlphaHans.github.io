@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>四视频同步播放器</title>
+    <style>
+        /* 网格布局样式参考自网页3和网页7 */
+        video {
+            width: 400px;
+            height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .controls {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+        <video id="video4" controls>
+            <source src="http://1251228285.vod2.myqcloud.com/436d278bvodtransgzp1251228285/90af7f693560136621756075768/v.f1632808.m3u8" type="application/x-mpegURL">
+            您的浏览器不支持视频播放
+        </video>
+      
+
+    <div class="controls">
+        <button onclick="syncPlayAll()">同步播放/暂停</button>
+        <button onclick="resetAll()">重置所有视频</button>
+    </div>
+
+    <script>
+        // 获取所有视频元素，参考网页1和网页6的实现
+        const videos = document.querySelectorAll('video');
+        
+        // 同步播放控制函数（参考网页2和网页7的交互逻辑）
+        function syncPlayAll() {
+            const isPaused = videos[0].paused;
+            videos.forEach(video => {
+                isPaused ? video.play().catch(e => console.error(e)) : video.pause();
+            });
+        }
+
+        // 重置所有视频（新增功能）
+        function resetAll() {
+            videos.forEach(video => {
+                video.pause();
+                video.currentTime = 0;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas阴影效果示例</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            margin-top: 20px;
+            font-family: monospace;
+            max-width: 400px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Canvas阴影效果演示</h2>
+        <canvas id="myCanvas" width="400" height="300"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 绘制说明文字
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#333';
+        ctx.fillText('半透明矩形(红色) + 蓝色阴影效果', 20, 30);
+        
+        // 绘制坐标参考线
+        ctx.beginPath();
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.moveTo(0, 100);
+        ctx.lineTo(canvas.width, 100);
+        ctx.moveTo(10, 0);
+        ctx.lineTo(10, canvas.height);
+        ctx.stroke();
+        
+        // 绘制文本标记
+        ctx.fillText('起点 (10,100)', 15, 90);
+        
+        // 设置阴影和透明度
+        ctx.shadowOffsetX = 0;    // X轴阴影偏移
+        ctx.shadowOffsetY = 0;    // Y轴阴影偏移
+        ctx.shadowBlur = 50;       // 阴影模糊度
+        ctx.shadowColor = 'blue';  // 阴影颜色
+        ctx.globalAlpha = 0.5;     // 全局透明度
+        
+        // 绘制矩形
+        ctx.fillStyle = 'red';
+        ctx.fillRect(10, 100, 150, 75);
+    </script>
+</body>
+</html>

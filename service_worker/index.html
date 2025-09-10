@@ -83,7 +83,7 @@
 
                 // 发送测试请求
     document.getElementById('testRequest').addEventListener('click', function() {
-        fetch('https://httpbin.org/cookies/set?session_id=abc123&user=test')
+        fetch('https://httpbin.org/response-headers?Set-Cookie=session_id%3Dxwebtest')
             .then(response => response.json())
             .then(data => {
                 console.log('响应数据:', data);

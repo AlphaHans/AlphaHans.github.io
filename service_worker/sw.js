@@ -33,7 +33,10 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname === '/') {
         event.respondWith(
         // 直接发起网络请求
-        fetch(event.request)
+        fetch(event.request, {
+                method: 'GET', // 或其他方法
+                credentials: 'include' // 关键：包含凭证
+            })
             .then((networkResponse) => {
             // 网络请求成功，检查响应是否有效
             if (networkResponse && networkResponse.status === 200) {

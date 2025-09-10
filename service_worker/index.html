@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>使用 Service Worker 的页面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body> 
+<div class="container">
+    <h1>Service Worker 模拟 Set-Cookie 响应</h1>
+
+    <h2>测试方法</h2>
+    <p>点击下面的按钮发送请求，Service Worker 会拦截该请求并返回响应。</p>
+
+    <button id="testRequest">发送测试请求</button>
+
+    <div id="result"></div>
+</div>
+
+    <script>
+        // 检查浏览器是否支持 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // 注册 Service Worker 脚本文件 'sw.js'
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker 注册成功，作用范围: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker 注册失败: ', error);
+                    });
+            });
+        }
+
+                // 发送测试请求
+    document.getElementById('testRequest').addEventListener('click', function() {
+        fetch('https://httpbin.org/cookies/set?session_id=abc123&user=test')
+            .then(response => response.json())
+            .then(data => {
+                console.log('响应数据:', data);
+                document.getElementById('result').innerHTML =
+                    '<div class="status success">请求成功！<br>' +
+                    '响应数据: ' + JSON.stringify(data) + '<br>' +
+                    '查看控制台和开发者工具中的 Network 和 Application 标签页查看详情</div>';
+            })
+            .catch(error => {
+                console.error('请求错误:', error);
+                document.getElementById('result').innerHTML =
+                    '<div class="status error">请求失败: ' + error.message + '</div>';
+            });
+    });
+    </script>
+</body>
+</html>

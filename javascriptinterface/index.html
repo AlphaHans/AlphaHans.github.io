@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>JS与Java交互Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 15px; margin: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>JavaScript与Java交互示例</h1>
+    
+    <button onclick="executeScript()">执行脚本并通知Java</button>
+    
+    <p id="status">准备就绪...</p>
+    
+    <script>
+        function executeScript() {
+            document.getElementById('status').innerText = '正在执行...';
+            
+            // 这里是你的JavaScript逻辑
+            setTimeout(() => {
+                // 模拟一些耗时操作
+                let result = performCalculations();
+                
+                // 执行完毕后通知Java层
+                if (window.AndroidInterface) {
+                    // 调用Java层的方法
+                    AndroidInterface.onJsExecutionComplete("计算完成，结果为: " + result);
+                    document.getElementById('status').innerText = '执行完毕，已通知Java层';
+                } else {
+                    document.getElementById('status').innerText = '错误: Java接口未找到';
+                }
+            }, 2000); // 模拟2秒延迟
+        }
+        
+        function performCalculations() {
+            // 这里是一些示例计算逻辑
+            let sum = 0;
+            for (let i = 0; i < 1000000; i++) {
+                sum += i;
+            }
+            return sum;
+        }
+    </script>
+</body>
+</html>

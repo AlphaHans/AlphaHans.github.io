@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复杂计算 Worker 演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eee;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+        .task {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e6f7ff;
+            border-radius: 4px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .animation {
+            width: 50px;
+            height: 50px;
+            background: #007bff;
+            border-radius: 50%;
+            margin: 20px auto;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>复杂计算 Web Worker 演示</h1>
+
+    <div class="animation"></div>
+    <p>动画用于测试主线程是否被阻塞</p>
+
+    <div class="task">
+        <h3>矩阵计算 (100x100)</h3>
+        <button onclick="runTask('matrix')">运行矩阵乘法</button>
+        <p>计算两个100x100随机矩阵的乘积</p>
+    </div>
+
+    <div class="task">
+        <h3>蒙特卡洛模拟</h3>
+        <button onclick="runTask('montecarlo')">估算 π 值</button>
+        <p>使用1千万次迭代估算π值</p>
+    </div>
+
+    <div class="task">
+        <h3>快速傅里叶变换</h3>
+        <button onclick="runTask('fft')">运行FFT</button>
+        <p>对1024点信号进行FFT变换</p>
+    </div>
+
+    <div class="task">
+        <h3>综合性能测试</h3>
+        <button onclick="runTask('benchmark')">运行所有测试</button>
+        <p>同时运行三种计算测试</p>
+    </div>
+
+    <button onclick="terminateWorker()" style="background: #dc3545;">终止 Worker</button>
+
+    <h3>计算结果：</h3>
+    <div id="output">准备就绪...</div>
+</div>
+
+<script>
+    let worker;
+    const output = document.getElementById('output');
+
+    // 初始化 Worker
+    function initWorker() {
+        if (worker) return worker;
+
+        // 注意：实际使用时替换为您的真实 Worker URL
+        worker = new Worker('complex-worker.js');
+
+        worker.onmessage = function(e) {
+            const { status, task, result, duration, error } = e.data;
+
+            if (status === 'success') {
+                output.innerHTML += `
+                    <div class="success">
+                        <strong>${task}</strong> 计算完成 (耗时 ${duration})<br>
+                        结果: ${typeof result === 'object' ? JSON.stringify(result).substring(0, 100) + '...' : result}
+                    </div>
+                `;
+            } else {
+                output.innerHTML += `
+                    <div class="error">
+                        <strong>${task}</strong> 计算失败: ${error}
+                    </div>
+                `;
+            }
+        };
+
+        worker.onerror = function(error) {
+            output.innerHTML += `
+                <div class="error">
+                    Worker 通信错误: ${error.message}
+                </div>
+            `;
+        };
+
+        return worker;
+    }
+
+    // 执行任务
+    function runTask(task) {
+        const worker = initWorker();
+        output.innerHTML += `<div>开始 <strong>${task}</strong> 任务...</div>`;
+
+        worker.postMessage({
+            task: task,
+            data: {}
+        });
+    }
+
+    // 终止 Worker
+    function terminateWorker() {
+        if (worker) {
+            worker.terminate();
+            worker = null;
+            output.innerHTML += '<div>Worker 已终止</div>';
+        } else {
+            output.innerHTML += '<div>没有活跃的 Worker</div>';
+        }
+    }
+
+    // 页面卸载时清理 Worker
+    window.addEventListener('beforeunload', function() {
+        if (worker) {
+            worker.terminate();
+        }
+    });
+</script>
+</body>
+</html>

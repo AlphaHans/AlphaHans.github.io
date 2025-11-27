@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全屏输入框示例</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        #textInput {
+            width: 100%; /* 宽度为屏幕等宽 */[1,2,3](@ref)
+            height: 50vh; /* 高度为屏幕高度的一半 */[4](@ref)
+            box-sizing: border-box; /* 确保内边距和边框包含在元素的总宽度和高度中 */[1,4](@ref)
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #4CAF50;
+            resize: none; /* 禁止用户手动调整大小 */[5](@ref)
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #textInput:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+        }
+
+        .controls {
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<p id="a">Demo 用于测试文本框与输入框自定义菜单的情况</p>
+<p>目前有以下情况情况：</p>
+<p>测试1. 长按文本框文字，弹出菜单栏：</p>
+<p>   菜单栏有：输入框与文本框都显示（选中文字）、仅文本框显示（选中文字）</p>
+<p>测试2. 输入框未有文字时，长按空白处，弹出菜单栏：</p>
+<p>   菜单栏仅有：仅输入框显示（不选中文字）</p>
+<p>测试3. 输入框输入文字后，长按文字，弹出菜单栏：
+<p>   菜单栏全都有：输入框与文本框都显示（选中文字）、仅输入框显示（选中文字）</p>
+
+<textarea id="textInput" placeholder="在此输入文本..."></textarea>
+
+<script>
+<!--    // 获取输入框元素-->
+<!--    const textInput = document.getElementById('textInput');-->
+
+<!--    /**-->
+<!--     * JavaScript API：插入换行符-->
+<!--     * 此函数可供Java代码调用，在输入框的当前光标位置插入换行符-->
+<!--     */-->
+<!--    function insertNewLine() {-->
+<!--        console.log('插入换行符');-->
+<!--        // 获取当前光标位置-->
+<!--        const startPos = textInput.selectionStart;-->
+<!--        const endPos = textInput.selectionEnd;-->
+
+<!--        // 获取当前文本-->
+<!--        const currentText = textInput.value;-->
+
+<!--        // 在光标位置插入换行符-->
+<!--        textInput.value = currentText.substring(0, startPos) + '\n' + currentText.substring(endPos);-->
+
+<!--        // 将光标定位在换行符之后-->
+<!--        const newPos = startPos + 1;-->
+<!--        textInput.selectionStart = newPos;-->
+<!--        textInput.selectionEnd = newPos;-->
+
+<!--        // 聚焦到输入框-->
+<!--        textInput.focus();-->
+<!--    }-->
+
+<!--    /**-->
+<!--     * 清空输入框内容-->
+<!--     */-->
+<!--    function clearText() {-->
+<!--        textInput.value = '';-->
+<!--        textInput.focus();-->
+<!--    }-->
+
+<!--    // 使insertNewLine函数在全局作用域中可用，以便Java调用-->
+<!--    window.insertNewLine = insertNewLine;-->
+<!--    window.clearText = clearText;-->
+
+<!--    // 添加响应式设计：当窗口大小改变时保持输入框高度为屏幕一半-->
+<!--    window.addEventListener('resize', function() {-->
+<!--        // 高度已通过CSS的vh单位设置，无需额外JavaScript处理-->
+<!--    });-->
+</script>
+</body>
+</html>

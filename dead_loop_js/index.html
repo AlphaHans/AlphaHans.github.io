@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device=device-width, initial-scale=1.0">
+    <title>JavaScript 死循环演示</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .sync-loop {
+            background-color: #ffebee;
+            border-left: 4px solid #e74c3c;
+        }
+        .async-loop {
+            background-color: #e8f5e9;
+            border-left: 4px solid #2ecc71;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #stopSyncBtn {
+            background-color: #e74c3c;
+        }
+        .log-container {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px;
+        }
+        .timestamp {
+            color: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">
+        <strong>警告：</strong> 此页面包含真正的死循环代码，执行同步死循环将导致浏览器标签页完全无响应，只能通过强制关闭标签页来恢复。
+    </div>
+    
+    <h1>JavaScript 死循环演示</h1>
+    
+    <div class="container">
+        <div class="section sync-loop">
+            <h2>真正的同步死循环（危险！）</h2>
+            <p>这是一个会阻塞浏览器主线程的真正死循环，点击后将导致页面卡死：</p>
+            <button id="startSyncBtn">启动同步死循环</button>
+            <button id="stopSyncBtn" disabled>停止同步死循环（可能无效）</button>
+            <div class="log-container" id="syncLogContainer">
+                <!-- 同步日志将在这里显示 -->
+            </div>
+        </div>
+        
+        <div class="section async-loop">
+            <h2>异步"死循环"（推荐）</h2>
+            <p>这是一个使用setInterval的异步循环，不会阻塞页面，可以正常停止：</p>
+            <button id="startAsyncBtn">启动异步循环</button>
+            <button id="stopAsyncBtn" disabled>停止异步循环</button>
+            <button id="clearBtn">清空所有日志</button>
+            <div class="log-container" id="asyncLogContainer">
+                <!-- 异步日志将在这里显示 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const syncLogContainer = document.getElementById('syncLogContainer');
+        const asyncLogContainer = document.getElementById('asyncLogContainer');
+        const startSyncBtn = document.getElementById('startSyncBtn');
+        const stopSyncBtn = document.getElementById('stopSyncBtn');
+        const startAsyncBtn = document.getElementById('startAsyncBtn');
+        const stopAsyncBtn = document.getElementById('stopAsyncBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        let asyncIntervalId = null;
+        let syncLoopRunning = false;
+        let logCounter = 0;
+        
+        // 添加日志函数
+        function addLog(container, message, isError = false) {
+            logCounter++;
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            if (isError) {
+                logEntry.style.color = '#e74c3c';
+            }
+            container.appendChild(logEntry);
+            container.scrollTop = container.scrollHeight;
+            
+            // 同时在控制台打印
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        // 同步死循环函数 - 这是真正的死循环！
+        function startSyncLoop() {
+            if (syncLoopRunning) return;
+            
+            syncLoopRunning = true;
+            startSyncBtn.disabled = true;
+            stopSyncBtn.disabled = false;
+            
+            addLog(syncLogContainer, "开始同步死循环 - 页面即将卡死！", true);
+            
+            // 给浏览器一点时间更新UI
+            setTimeout(() => {
+                // 真正的同步死循环 - 这将完全阻塞浏览器主线程[1,6](@ref)
+                let counter = 0;
+                while (true) {  // 这个循环永远不会结束[1,2](@ref)
+                    counter++;
+                    
+                    // 每10秒尝试打印一次日志（但由于循环是同步的，可能不会按预期工作）
+                    if (counter % 10000000 === 0) {  // 这个条件可能永远不会达到，或者不会按预期工作
+                        // 由于主线程被阻塞，这行代码可能不会执行
+                        const timestamp = new Date().toLocaleTimeString();
+                        syncLogContainer.innerHTML += 
+                            `<div class="log-entry"><span class="timestamp">[${timestamp}]</span> ` +
+                            `同步死循环执行中... 计数器: ${counter}</div>`;
+                    }
+                    
+                    // 注意：由于是真正的同步死循环，页面会完全卡死，
+                    // 上面的日志添加代码可能不会按预期工作[6,7](@ref)
+                }
+            }, 100);
+        }
+        
+        // 异步循环函数 - 更实用的替代方案
+        function startAsyncLoop() {
+            if (asyncIntervalId) return;
+            
+            addLog(asyncLogContainer, "开始异步循环（每10秒打印日志）");
+            
+            // 使用setInterval创建异步循环[1,6](@ref)
+            asyncIntervalId = setInterval(() => {
+                addLog(asyncLogContainer, `异步循环日志 - 这是第 ${logCounter} 条日志`);
+            }, 10000); // 每10秒执行一次
+            
+            startAsyncBtn.disabled = true;
+            stopAsyncBtn.disabled = false;
+        }
+        
+        // 停止异步循环
+        function stopAsyncLoop() {
+            if (!asyncIntervalId) return;
+            
+            clearInterval(asyncIntervalId);
+            asyncIntervalId = null;
+            
+            addLog(asyncLogContainer, "异步循环已停止");
+            
+            startAsyncBtn.disabled = false;
+            stopAsyncBtn.disabled = true;
+        }
+        
+        // 尝试停止同步循环（可能不会成功）
+        function stopSyncLoop() {
+            if (!syncLoopRunning) return;
+            
+            // 由于同步循环会阻塞主线程，这个函数可能永远不会被调用[6](@ref)
+            addLog(syncLogContainer, "尝试停止同步循环...", true);
+            syncLoopRunning = false;
+            startSyncBtn.disabled = false;
+            stopSyncBtn.disabled = true;
+        }
+        
+        // 清空日志
+        function clearLogs() {
+            syncLogContainer.innerHTML = '';
+            asyncLogContainer.innerHTML = '';
+            logCounter = 0;
+            addLog(asyncLogContainer, "日志已清空");
+        }
+        
+        // 绑定按钮事件
+        startSyncBtn.addEventListener('click', startSyncLoop);
+        stopSyncBtn.addEventListener('click', stopSyncLoop);
+        startAsyncBtn.addEventListener('click', startAsyncLoop);
+        stopAsyncBtn.addEventListener('click', stopAsyncLoop);
+        clearBtn.addEventListener('click', clearLogs);
+        
+        // 页面加载时添加初始日志
+        window.addEventListener('load', () => {
+            addLog(asyncLogContainer, "页面已加载");
+            addLog(syncLogContainer, "同步死循环区域 - 使用极端小心！", true);
+        });
+    </script>
+</body>
+</html>

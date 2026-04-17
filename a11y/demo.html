@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accessibility Demo: Button, Clickable Image, Non-clickable Image</title>
+  <title>无障碍 talkback 测试</title>
   <style>
     * {
       margin: 0;
@@ -105,47 +105,90 @@
   </style>
 </head>
 <body>
-  <h1>Accessibility: Button &amp; Image Demo</h1>
+  <h1>无障碍 talkback 测试</h1>
 
   <!-- 1. Button -->
   <div class="card">
-    <h2>1. Button</h2>
-    <p>A native &lt;button&gt; element. Android accessibility reports: <code>android.widget.Button</code></p>
-    <button  alt="可点击button" onclick="showToast('Button clicked!')">Click Me</button>
-    <div class="a11y-info">Role: button → ClassName: android.widget.Button</div>
+    <h2>按钮测试1：</h2>
+    <p>测试用例：按钮带名称测试，不带 alt。 </p>
+    <p>测试结果：talkback 播报：我是btn 按钮 点按两次即可激活</p>
+    <button onclick="showToast('Button clicked!')">我是btn</button>
+
+    <h2>按钮测试2：</h2>
+    <p>测试用例：按钮不带名称测试，不带 alt。</p>
+    <p>测试结果：talkback 播报：按钮 点按两次即可激活</p>
+    <button onclick="showToast('Button clicked!')"></button>
+
+    <h2>按钮测试3：</h2>
+    <p>测试用例：按钮不带名称测试，带 alt（alt为：我是按钮 alt）。</p> 
+    <p>测试结果：talkback 播报：按钮 点按两次即可激活</p>
+    <button alt="我是按钮 alt" onclick="showToast('Button clicked!')"></button>
   </div>
 
-  <!-- 2. Clickable Image -->
   <div class="card">
-    <h2>2. Clickable Image</h2>
-    <p>An &lt;img&gt; with onclick. Android accessibility reports: <code>android.widget.ImageButton</code></p>
+    <h2>可点击 Image 测试1：</h2>
+    <p>测试用例：带 alt 测试，alt 内容为：我是 alt。 </p>
+    <p>测试结果：</p>
+    <p>142版本预期结果：talkback 播报：我是 alt 图形 点按两次即可激活</p>
+    <p>146版本（小于1460067）预期结果：talkback 播报：我是 alt 按钮 点按两次即可激活</p>
+    <p>146版本（大于等于1460067）预期结果：talkback 播报：我是 alt 图形 点按两次即可激活</p>
     <img
       class="clickable-image"
       src="https://picsum.photos/200/120?random=1"
-      alt="Clickable image"
+      alt="我是 alt"
       width="200"
       height="120"
       tabindex="0"
       onclick="showToast('Clickable image clicked!')"
       onkeydown="if(event.key==='Enter')this.click()"
-      alt="可点击image"
     />
-    <div class="a11y-info">Role: img + clickable → ClassName: android.widget.ImageButton</div>
-  </div>
 
-  <!-- 3. Non-clickable Image -->
-  <div class="card">
-    <h2>3. Non-clickable Image</h2>
-    <p>A plain &lt;img&gt; without any click handler. Android accessibility reports: <code>android.widget.Image</code></p>
+
+    <h2>可点击 Image 测试2：</h2>
+    <p>测试用例：不带 alt 测试</p>
+    <p>测试结果：</p>
+    <p>142版本预期结果：talkback 播报：120?random=1 图形 点按两次即可激活</p>
+    <p>146版本（小于1460067）预期结果：talkback 播报：120?random=1 按钮 点按两次即可激活</p>
+    <p>146版本（大于等于1460067）预期结果：talkback 播报：120?random=1 图形 点按两次即可激活</p>
     <img
-      class="non-clickable-image"
-      src="https://picsum.photos/200/120?random=2"
-      alt="Non-clickable image"
+      class="clickable-image"
+      src="https://picsum.photos/200/120?random=1"
       width="200"
       height="120"
-      alt="不可点击iamge"
+      tabindex="0"
+      onclick="showToast('Clickable image clicked!')"
+      onkeydown="if(event.key==='Enter')this.click()"
     />
-    <div class="a11y-info">Role: img (not clickable) → ClassName: android.widget.Image</div>
+  </div>
+
+  <div class="card">
+    <h2>不可点击 Image 测试1：</h2>
+    <p>测试用例：带 alt 测试，alt 内容为：我是 alt。 </p>
+    <p>测试结果：</p>
+    <p>142和146版本预期结果：talkback 播报：我是 alt 图形</p>
+    <img
+      class="non-clickable-image"
+      src="https://picsum.photos/200/120?random=1"
+      alt="我是 alt"
+      width="200"
+      height="120"
+      tabindex="0"
+      onkeydown="if(event.key==='Enter')this.click()"
+    />
+
+
+  <h2>不可点击 Image 测试2：</h2>
+    <p>测试用例：不带 alt 测试</p>
+    <p>测试结果：</p>
+    <p>142和146版本预期结果：talkback 播报：120?random=1 图形</p>
+    <img
+      class="non-clickable-image"
+      src="https://picsum.photos/200/120?random=1"
+      width="200"
+      height="120"
+      tabindex="0"
+      onkeydown="if(event.key==='Enter')this.click()"
+    />
   </div>
 
   <div id="toast" class="toast"></div>

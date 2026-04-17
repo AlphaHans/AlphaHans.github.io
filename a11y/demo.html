@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Demo: Button, Clickable Image, Non-clickable Image</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 24px;
+      color: #333;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card h2 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    .card p {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 16px;
+    }
+    .card .a11y-info {
+      font-size: 12px;
+      color: #888;
+      background: #f9f9f9;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 12px;
+      font-family: monospace;
+    }
+    button {
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1557b0;
+    }
+    button:active {
+      background: #0d47a1;
+    }
+    .clickable-image {
+      cursor: pointer;
+      border-radius: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: inline-block;
+    }
+    .clickable-image:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .clickable-image:active {
+      transform: scale(0.98);
+    }
+    .clickable-image:focus-visible {
+      outline: 3px solid #1a73e8;
+      outline-offset: 2px;
+    }
+    .non-clickable-image {
+      border-radius: 8px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #323232;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <h1>Accessibility: Button &amp; Image Demo</h1>
+
+  <!-- 1. Button -->
+  <div class="card">
+    <h2>1. Button</h2>
+    <p>A native &lt;button&gt; element. Android accessibility reports: <code>android.widget.Button</code></p>
+    <button  alt="可点击button" onclick="showToast('Button clicked!')">Click Me</button>
+    <div class="a11y-info">Role: button → ClassName: android.widget.Button</div>
+  </div>
+
+  <!-- 2. Clickable Image -->
+  <div class="card">
+    <h2>2. Clickable Image</h2>
+    <p>An &lt;img&gt; with onclick. Android accessibility reports: <code>android.widget.ImageButton</code></p>
+    <img
+      class="clickable-image"
+      src="https://picsum.photos/200/120?random=1"
+      alt="Clickable image"
+      width="200"
+      height="120"
+      tabindex="0"
+      onclick="showToast('Clickable image clicked!')"
+      onkeydown="if(event.key==='Enter')this.click()"
+      alt="可点击image"
+    />
+    <div class="a11y-info">Role: img + clickable → ClassName: android.widget.ImageButton</div>
+  </div>
+
+  <!-- 3. Non-clickable Image -->
+  <div class="card">
+    <h2>3. Non-clickable Image</h2>
+    <p>A plain &lt;img&gt; without any click handler. Android accessibility reports: <code>android.widget.Image</code></p>
+    <img
+      class="non-clickable-image"
+      src="https://picsum.photos/200/120?random=2"
+      alt="Non-clickable image"
+      width="200"
+      height="120"
+      alt="不可点击iamge"
+    />
+    <div class="a11y-info">Role: img (not clickable) → ClassName: android.widget.Image</div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>

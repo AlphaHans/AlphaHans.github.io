@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebGL GL_MESA_framebuffer_flip_y Test</title>
+</head>
+<body>
+    <canvas id="glcanvas" width="256" height="256"></canvas>
+    <script>
+        function test() {
+            const canvas = document.getElementById('glcanvas');
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+
+            if (!gl) {
+                console.error("WebGL not supported");
+                document.body.innerHTML += "<h2>WebGL not supported.</h2>";
+                return;
+            }
+
+            const fb = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+            // MESA_framebuffer_flip_y is an internal extension in Chromium.
+            // On some contexts, WebGL or generic GPU compositing operations
+            // implicitly call glFramebufferParameteri(...) during context setup or draw.
+            // This test is to create basic FBO and invoke commands to try and trigger the path.
+            gl.clearColor(1.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            document.body.innerHTML += "<h2>Test finished running commands.</h2>";
+        }
+
+        window.onload = test;
+    </script>
+</body>
+</html>

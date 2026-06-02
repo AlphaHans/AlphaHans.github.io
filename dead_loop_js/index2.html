@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Promise Microtask 无限循环复现</title>
+</head>
+<body>
+<h1>Promise Microtask 无限循环复现</h1>
+<p>打开此页面后，Renderer 主线程将被阻塞，页面会卡死。</p>
+<p id="counter">这段文字永远不会更新: 0</p>
+
+<script>
+    // 方式1：catch 中递归调用自身，不断产生新的 rejected promise
+    // 每次 catch 回调作为 microtask 执行时，又创建新的 rejected promise，
+    // 新的 rejection 又会入队新的 microtask，形成无限循环。
+    function infiniteRejectLoop() {
+      return Promise.reject("error").catch(() => {
+        return infiniteRejectLoop(); // 递归产生新 microtask，永不结束
+      });
+    }
+
+    // 方式2：利用 then 链条不断 reject
+    // function infiniteRejectChain() {
+    //   let p = Promise.reject("initial error");
+    //   for (let i = 0; i < 1000000; i++) {
+    //     p = p.catch(() => Promise.reject("error " + i));
+    //   }
+    // }
+
+    // 延迟 1 秒触发，让页面有机会渲染出提示文字
+    setTimeout(() => {
+      console.log("即将触发 Promise 无限循环，页面将卡死...");
+      infiniteRejectLoop();
+    }, 20000);
+
+    // 这个 setInterval 用来验证主线程是否被阻塞
+    // 一旦 microtask 循环开始，这个计数器将停止更新
+    let count = 0;
+    setInterval(() => {
+      count++;
+      document.getElementById("counter").textContent = "这段文字永远不会更新: " + count;
+    }, 100);
+</script>
+</body>
+</html>

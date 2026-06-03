@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Test 6: render-blocking CSS that never loads</title>
+<link rel="stylesheet" href="https://httpstat.us/200?sleep=999999">
+</head>
+<body>
+<h1>Blocked by CSS</h1>
+<p>The stylesheet above hangs forever, blocking first render</p>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>发票确认弹窗 WebView 测试</title>
+  <style>
+    :root {
+      --green: #1cac46;
+      --white: #ffffff;
+      --black: #111111;
+      --page-bg: #f5f6f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background: var(--page-bg);
+      color: var(--black);
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .demo-page {
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: calc(50px + env(safe-area-inset-top)) 20px 20px;
+    }
+
+    .cu-test {
+      width: max-content;
+      margin: 0 auto;
+      padding: 10px 22px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--green);
+      color: var(--white);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cu-test:active {
+      opacity: 0.8;
+    }
+
+    /* 以下弹窗样式由小程序 index.wxss 转换而来。 */
+    .cu-modal {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 9999;
+      opacity: 0;
+      outline: 0;
+      text-align: center;
+      -ms-transform: scale(1.185);
+      transform: scale(1.185);
+      backface-visibility: hidden;
+      perspective: 1000px;
+      background: rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease-in-out 0s;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .cu-modal::before {
+      content: "\200B";
+      display: inline-block;
+      height: 100%;
+      vertical-align: middle;
+    }
+
+    .cu-modal.show {
+      opacity: 1;
+      -ms-transform: scale(1);
+      transform: scale(1);
+      overflow-x: hidden;
+      overflow-y: auto;
+      pointer-events: auto;
+      visibility: visible;
+    }
+
+    .cu-dialog {
+      position: relative;
+      display: inline-block;
+      width: 340px;
+      max-width: 100%;
+      margin-right: auto;
+      margin-left: auto;
+      overflow: hidden;
+      vertical-align: middle;
+      background-color: #f8f8f8;
+      border-radius: 5px;
+    }
+
+    .cu-modal.bottom-modal::before {
+      vertical-align: bottom;
+    }
+
+    .cu-modal.bottom-modal .cu-dialog {
+      width: 100%;
+      max-width: 750px;
+      border-radius: 12px 12px 0 0;
+      background: var(--white);
+    }
+
+    .cu-modal.bottom-modal {
+      margin-bottom: -500px;
+    }
+
+    .cu-modal.bottom-modal.show {
+      margin-bottom: 0;
+    }
+
+    .cu-bar {
+      display: flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .content {
+      font-size: 17px;
+    }
+
+    .text-bold {
+      font-weight: 600;
+    }
+
+    .padding-xl {
+      margin-right: auto;
+      margin-left: auto;
+      padding: 0 25px 25px;
+    }
+
+    .cu-dialog .inside {
+      display: flex;
+      min-width: 0;
+      gap: 6px;
+      overflow: hidden;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .inside:first-child {
+      margin-top: 10px;
+    }
+
+    .inside:not(:last-child) {
+      margin-bottom: 8px;
+    }
+
+    .inside-value {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .text-gray {
+      flex: 0 0 auto;
+      color: #888888;
+    }
+
+    .tail {
+      display: flex;
+      gap: 18px;
+      justify-content: space-around;
+      margin-top: 15px;
+      padding: 0 37px calc(42px + env(safe-area-inset-bottom));
+    }
+
+    .cu-btn {
+      position: relative;
+      display: inline-flex;
+      width: 140px;
+      height: 40px;
+      margin-right: 0;
+      margin-left: 0;
+      padding: 0 15px;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      border: 0;
+      border-radius: 2px;
+      font-size: 14px;
+      line-height: 1;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transform: translate(0, 0);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cu-btn:active {
+      opacity: 0.78;
+    }
+
+    .text-green,
+    .line-green,
+    .lines-green {
+      color: var(--green);
+    }
+
+    .bg-green {
+      background-color: var(--green);
+      color: var(--white);
+    }
+
+    .bg-gray {
+      background-color: #f0f0f0;
+      color: var(--black);
+    }
+
+    @media (max-width: 360px) {
+      .tail {
+        gap: 12px;
+        padding-right: 24px;
+        padding-left: 24px;
+      }
+
+      .cu-btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cu-modal {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="demo-page">
+    <button id="showModalButton" class="cu-test" type="button">测试</button>
+  </main>
+
+  <section
+    id="invoiceModal"
+    class="cu-modal bottom-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="invoiceModalTitle"
+    aria-hidden="true"
+  >
+    <div class="cu-dialog bg-white">
+      <header class="cu-bar justify-end">
+        <div id="invoiceModalTitle" class="content text-bold">开具电子发票</div>
+      </header>
+
+      <div class="padding-xl">
+        <div class="inside">
+          <span class="text-gray">发票类型:</span>
+          <span class="inside-value">电子发票</span>
+        </div>
+        <div class="inside">
+          <span class="text-gray">发票抬头:</span>
+          <span class="inside-value">示例科技有限公司</span>
+        </div>
+        <div class="inside">
+          <span class="text-gray">电子邮箱:</span>
+          <span class="inside-value">invoice@example.com</span>
+        </div>
+        <div class="inside">
+          <span class="text-gray">开票金额：</span>
+          <span class="inside-value">128.00元</span>
+        </div>
+      </div>
+
+      <footer class="tail">
+        <button id="cancelButton" class="cu-btn bg-gray text-green" type="button">取消</button>
+        <button id="confirmButton" class="cu-btn bg-green" type="button">确认</button>
+      </footer>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const modal = document.getElementById('invoiceModal');
+      const showButton = document.getElementById('showModalButton');
+      const cancelButton = document.getElementById('cancelButton');
+      const confirmButton = document.getElementById('confirmButton');
+      let lastFocusedElement = null;
+
+      function showModal() {
+        lastFocusedElement = document.activeElement;
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        cancelButton.focus();
+      }
+
+      function hideModal() {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (lastFocusedElement) {
+          lastFocusedElement.focus();
+        }
+      }
+
+      showButton.addEventListener('click', showModal);
+      cancelButton.addEventListener('click', hideModal);
+      confirmButton.addEventListener('click', hideModal);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.classList.contains('show')) {
+          hideModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
